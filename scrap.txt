@@ -5,3 +5,28 @@
     }
 
     
+/* File Ops */ 
+
+var writeFile = (fileName, objToSave, callback) => {
+    fs.writeFile("data/" + fileName, JSON.stringify(objToSave, null, 2), function(err) {
+        if(err) {
+            callback({status:err});
+        } else {
+            callback({status:'OK'});
+        }
+    }); 
+}
+
+var writeFlatFile = (fileName, objToSave, callback) => {
+    fs.writeFile("data/" + fileName, objToSave, function(err) {
+        if(err) {
+            callback({status:err});
+        } else {
+            callback({status:'OK'});
+        }
+    }); 
+}
+
+
+//"abcd".match(/.{1,3}/g)
+

@@ -88,7 +88,7 @@
 					                return {
 					                    tgtIDs : (tgtIDs) => {
 								    		return this.formatter(
-									    		sysexLib.insert_pipe
+									    		sysexLib.route_set
 								    			.concat([
 								    				~~srcType, ~~srcID, ~~tgtType
 								    			])
@@ -112,7 +112,7 @@
 			                return {
 			                    tgtIDs : (tgtIDs) => {
 						    		return this.formatter(
-							    		sysexLib.insert_pipe
+							    		sysexLib.route_set_ithru
 						    			.concat([
 						    				~~srcID, ~~tgtType
 						    			])

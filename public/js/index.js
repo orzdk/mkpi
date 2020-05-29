@@ -327,20 +327,20 @@ WebMidi.enable(function (err) {
 	
 	}
 
-	var onSysex = function(sysex){
+	var processSysex = function(sysexData){
 
-		sysexRecords.push(sysex.data);
+		sysexRecords.push(sysexData);
 
-		var rs = convertToReadableSysex(sysex.data);
+		var rs = convertToReadableSysex(sysexData);
 		$("#sysex_received").val($("#sysex_received").val() + "\r\n" + rs); 
 
-		var msgdata = sysex.data.slice(4,sysex.data.length-1);
+		var msgdata = sysexData.slice(4,sysexData.length-1);
 		var functionCommand = msgdata[0];
 		var pfunc = mkumlProcessors[functionCommand];
 
 		if (pfunc) {
 
-			r =	pfunc(msgdata, sysex.data.length);	
+			r =	pfunc(msgdata, sysexData.length);	
 
 			if (r)	
 			if (r.process == 16){
@@ -388,6 +388,13 @@ WebMidi.enable(function (err) {
 		}
 
 		if (render) drawUML();
+
+
+	}
+
+	var onSysex = function(sysex){
+
+		processSysex(sysex.data);
 
 	}
 
@@ -470,6 +477,7 @@ WebMidi.enable(function (err) {
 	}
 
 	/* Sysex Commands */
+
 
 	var sendCommand = function(){
 
@@ -580,9 +588,6 @@ WebMidi.enable(function (err) {
 	    sendRefresh();
 	
 	}
-
-	/* Pipeline Operations */
-	
 
 	var attachPipeline = function(){
 
@@ -699,8 +704,6 @@ WebMidi.enable(function (err) {
 
 	}
 
-	/* Operational functions */
-
 	var setDeviceID = function(){
 
 		var deviceID = $("#deviceID").val();
@@ -712,8 +715,6 @@ WebMidi.enable(function (err) {
 	    sendRefresh();
 
 	}
-
-	/* Route Toggle */
 
 	var toggle = function(routeObj){
 
@@ -732,7 +733,14 @@ WebMidi.enable(function (err) {
 			}
 		});
 
+
+		
+		console.log(bmt);
+		console.log(1 << tgtID);
+
 		bmt ^= (1 << tgtID)
+
+		console.log(bmt);
 
 	    for (i=0;i<=15;i++){
 	      if (bmt & (1 << i)){
@@ -740,10 +748,13 @@ WebMidi.enable(function (err) {
 	      }
 	    }
 
+	    console.log(targetArray);
+
 	    if (routeObj == renderObject.routes){
-	    	sx = sxMaker.route().srcTtype(srctype).srcID(srcid).tgtType(tgttype).targetIDs(targetArray);
+	    	sx = sxMaker.route().srcType(srctype).srcID(srcid).tgtType(tgttype).tgtIDs(targetArray);
+	    	console.log(convertToReadableSysex(sx));
 	    } else {
-	    	sx = sxMaker.intelliRoute().srcID(srcid).tgtType(tgttype).targetIDs(targetArray);
+	    	sx = sxMaker.intelliRoute().srcID(srcid).tgtType(tgttype).tgtIDs(targetArray);
 	    }
 
 	    sendSysex(sx);
@@ -761,92 +772,6 @@ WebMidi.enable(function (err) {
 
 		toggle(renderObject.intelliRoutes);
 
-	}
-
-	/* Input Change Events */
-
-	var pipeIDChanged = function(){
-		refreshParameterUI(true, true, true, true);
-	}
-
-	var pp1Changed = function(){
-		refreshParameterUI(false, true, true, true);
-	}
-
-	var pp2Changed = function(){
-		refreshParameterUI(false, false, false, false);
-	}
-
-	var pp3Changed = function(){
-		refreshParameterUI(false, false, false, true);
-	}
-
-	var pp4Changed = function(){
-		refreshParameterUI(false, false, false, false);
-	}
-
-	var toggleSelectionsChanged = function(e){
-
-
-		var tdp = $("#checkToggle").is(":checked") ? 1 : 0;
-		var srctype = $("#fromType").val();
-		var srcid = $("#fromID").val();
-		var tgttype = $("#toType").val();
-		var tgtid = $("#toID").val();
-
-		if (srctype != 1 || tgttype == 0){
-			$("#toggleBitIThru").prop('disabled', true);
-		} else {
-			$("#toggleBitIThru").prop('disabled', false);
-		}
-
-		selectedToggle = tdp == 0 ? {} : { srctype, srcid, tgttype, tgtid };
-
-		drawUML();
-
-	}
-
-	var uioptionChanged = function(){
-
-		var uioption = $("#uioption").val();
-
-		if (uioption == "diagram"){
-			$("#sysex").addClass("d-none");
-			$("#summary").addClass("d-none");
-			$("#diagram").removeClass("d-none");
-		} else if (uioption == "summary"){
-			$("#sysex").addClass("d-none");
-			$("#summary").removeClass("d-none");
-			$("#diagram").addClass("d-none");
-		} else if (uioption == "sysex"){
-			$("#sysex").removeClass("d-none");
-			$("#summary").addClass("d-none");
-			$("#diagram").addClass("d-none");
-		}
-
-	};
-
-	var inputChanged = function(e){
-
-		var midiInputSelect = $("#midiInputSelect").val();
-		var input = WebMidi.getInputByName(midiInputSelect);
-
-		input.addListener("sysex", "all", onSysex);		
-	
-	}
-
-	var pipelineIDChanged = function(){
-
-		pipelinePositions = JSON.parse(JSON.stringify(pipelinePositionsBlank));
-
-		renderObject.pipes.pipeSlots.forEach((slot)=>{
-			if (slot.slotid == $("#pipelineID").val()){
-				pipelinePositions[slot.pipeidx] = (slot.pipeidx+1) + ": " + PIPEDEF3[slot.pipeid].title;
-			} 
-		});
-
-		refreshPositionsSelect();
-			
 	}
 
 	/* Scenes Management */
@@ -917,40 +842,59 @@ WebMidi.enable(function (err) {
 
 	}
 
-	/* Menu -------------------------------------------------------------------------------------- */
+	/* Menu  */
 
 	var toggleMenu = function(item){
-
-		console.log(item.target.id);
 
 		if ( $("._" + item.target.id + "_").hasClass('d-none') ){
 			$("._" + item.target.id + "_").removeClass('d-none');
 		} else {
 			$("._" + item.target.id + "_").addClass('d-none');
 		}
-
 		
 	}
 	
-	/* Setup ------------------------------------------------------------------------------------- */
+	function toByteArray(hexString) {
+	  var result = [];
+	  for (var i = 0; i < hexString.length; i += 2) {
+	    result.push(parseInt(hexString.substr(i, 2), 16));
+	  }
+	  return result;
+
+	}
+
+	/* Socket Client Stuff */
 
 	var socket = io();
 	var socketIdentity = {};
 
 	socket.on('connect', function(data){
+		
+		console.log("socket/connect");
 
 	    var mkid = $("#userinfo").val();
 
-	    /* Registration */
 	    socket.emit('register', { app: 'mkuml', mkid: mkid });
-	    socket.on('registered', function(data){	socketIdentity = data; });
-	    socket.on('disconnect', function(){ socketIdentity = {}; });
+	    socket.on('registered', function(data){	console.log("socket/registered", JSON.stringify(data)); socketIdentity = data; });
+	    socket.on('disconnect', function(){ console.log("socket/disconnect"); socketIdentity = {}; });
 
 	    socket.on('sysexdata', function(sxData){
-	    	console.log(sxData);
+
+			console.log("socket/sysexdata");
+
+	    	sxData2 = sxData.map(sysex => Uint8Array.from(toByteArray(sysex)));
+	    	
+	    	sxData2.forEach((sysex) => {
+	    		if (sysex.length != 1) {
+	    			processSysex(sysex);
+	    		}
+	    	});
+
 	    });
 
 		socket.on('remotetoggleroute', function(data){
+
+			console.log("socket/remotetoggleroute");
 
 			var srctype = data.srctype;
 			var srcid = data.srcid;
@@ -982,13 +926,101 @@ WebMidi.enable(function (err) {
 
 	});
 
+	/* Input Change Events */
+
+	var pipeIDChanged = function(){
+		refreshParameterUI(true, true, true, true);
+	}
+
+	var pp1Changed = function(){
+		refreshParameterUI(false, true, true, true);
+	}
+
+	var pp2Changed = function(){
+		refreshParameterUI(false, false, false, false);
+	}
+
+	var pp3Changed = function(){
+		refreshParameterUI(false, false, false, true);
+	}
+
+	var pp4Changed = function(){
+		refreshParameterUI(false, false, false, false);
+	}
+
+	var toggleSelectionsChanged = function(e){
+
+
+		var tdp = $("#checkToggle").is(":checked") ? 1 : 0;
+		var srctype = $("#fromType").val();
+		var srcid = $("#fromID").val();
+		var tgttype = $("#toType").val();
+		var tgtid = $("#toID").val();
+
+		if (srctype != 1 || tgttype == 0){
+			$("#toggleBitIThru").prop('disabled', true);
+		} else {
+			$("#toggleBitIThru").prop('disabled', false);
+		}
+
+		selectedToggle = tdp == 0 ? {} : { srctype, srcid, tgttype, tgtid };
+
+		drawUML();
+
+	}
+
+	var uioptionChanged = function(){
+
+		var uioption = $("#uioption").val();
+
+		if (uioption == "diagram"){
+			$("#sysex").addClass("d-none");
+			$("#summary").addClass("d-none");
+			$("#diagram").removeClass("d-none");
+		} else if (uioption == "summary"){
+			$("#sysex").addClass("d-none");
+			$("#summary").removeClass("d-none");
+			$("#diagram").addClass("d-none");
+		} else if (uioption == "sysex"){
+			$("#sysex").removeClass("d-none");
+			$("#summary").addClass("d-none");
+			$("#diagram").addClass("d-none");
+		}
+
+	}
+
+	var inputChanged = function(e){
+
+		var midiInputSelect = $("#midiInputSelect").val();
+		var input = WebMidi.getInputByName(midiInputSelect);
+
+		input.addListener("sysex", "all", onSysex);		
+	
+	}
+
+	var pipelineIDChanged = function(){
+
+		pipelinePositions = JSON.parse(JSON.stringify(pipelinePositionsBlank));
+
+		renderObject.pipes.pipeSlots.forEach((slot)=>{
+			if (slot.slotid == $("#pipelineID").val()){
+				pipelinePositions[slot.pipeidx] = (slot.pipeidx+1) + ": " + PIPEDEF3[slot.pipeid].title;
+			} 
+		});
+
+		refreshPositionsSelect();
+			
+	}
+
+	/* Main */
+
 	var midiInputSelect = $("#midiInputSelect").val();
 	var input = WebMidi.getInputByName(midiInputSelect);
 
 	input.addListener("sysex", "all", onSysex);		
 
 	$.ajax({
-	  url: './json/pipelines_meta4.json',
+	  url: './json/pipes.json',
 	  async: false,
 	  dataType: 'json',
 	  success: function (response) { PIPEDEF3 = response; }
@@ -1002,7 +1034,7 @@ WebMidi.enable(function (err) {
 	});
 
 	$.ajax({
-	  url: './json/allports.json',
+	  url: './json/ports.json',
 	  async: false,
 	  dataType: 'json',
 	  success: function (response) { allPorts = response; }
@@ -1153,6 +1185,5 @@ WebMidi.enable(function (err) {
 	  updateNomnomHeader();
 	  drawUML();
 	}
-
 
 }, true);

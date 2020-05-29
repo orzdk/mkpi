@@ -1,5 +1,5 @@
 
-/* Standard Includes */
+/* Includes & Express */
 
 var express = require('express');
 var http = require("http");
@@ -10,7 +10,13 @@ var config = require('./config-mk');
 var mongoose = require('mongoose');
 var SysexRecord = require('./models/SysexRecord.js');
 
-port = 8001;
+const sxm = require('./public/js/sysexmaker');
+var sxMaker = new sxm.sysexMaker.sxMaker(1);
+
+var s_port;
+var s_port_buffer = Buffer.alloc(0);
+
+var port = 8001;
 
 var app = express(); 
 
@@ -35,129 +41,96 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());    
 app.use(bodyParser.urlencoded({extended: true}));    
 
+var runtime = "";
+var enableSocket = false;
+var mongoConnect = false;
 
-/* Socket Stuff *************************/
-
-var io = require("socket.io").listen(httpsserver);
-var socketRegisteredClientsObj = {};
-var socketClientID = "";
-
-io.on('connect', function(client){
-
-    var dumpStatus = function(){
-        console.log("-------------------------------------------------");
-        console.log("socketRegisteredClientsObj",socketRegisteredClientsObj);
-        console.log("-------------------------------------------------");
-    }
-
-    client.on('register', function(data){
-        clientObj =  { app: data.app, mkumlid: data.mkid, socketclientid: client.id};
-        socketRegisteredClientsObj[client.id] = clientObj;
-        client.emit('registered', clientObj);
-        dumpStatus();
-    });
-
-    client.on('toggleroute', function(data){
-
-        if (socketRegisteredClientsObj){
-            socketRegisteredClientsObj.forEach(function(co){
-                if (co.type=='mkuml' && co.mkid == data.mkid){
-                    console.log("mkuml for " + data.mkid + "found @ " + JSON.stringify(socketRegisteredClientsObj[client.id].clientid));
-                    io.to(co.clientid).emit('toggleroute', data);
-                }
-            });
-        }
-
-        dumpStatus();
-
-    });
-
-    client.on('disconnect', function(){
-        delete socketRegisteredClientsObj[client.id];
-        dumpStatus();
-
-    });
+process.argv.forEach(function (val, index, array) {
+  if( process.argv[index] == '--raspi-gpio' ) runtime = process.argv[index];
+  if( process.argv[index] == '--enable-sockets' ) enableSocket = true;
+  if( process.argv[index] == '--mongo-connect' ) mongoConnect = true;
 
 });
+
+/* Mongo Connect */
+
+if (config.database != "" && mongoConnect == true) {
+    mongoose.connect(config.database,{useNewUrlParser: true, useUnifiedTopology: true });
+    mongoose.Promise = global.Promise;
+}
+
+/* Socket Stuff */
+
+if (enableSocket == true){
+
+    var io = require("socket.io").listen(httpsserver);
+    var socketRegisteredClientsObj = {};
+    var socketClientID = "";
+
+    io.on('connect', function(client){
+
+        client.on('register', function(data){
+            clientObj =  { app: data.app, mkumlid: data.mkid, socketclientid: client.id };
+            socketRegisteredClientsObj[client.id] = clientObj;
+            client.emit('registered', clientObj);
+        });
+
+        client.on('toggleroute', function(data){
+            if (socketRegisteredClientsObj){
+                socketRegisteredClientsObj.forEach(function(clientObj){
+                    if (clientObj.app == 'mkuml' && clientObj.mkid == data.mkid){
+                        io.to(co.clientid).emit('remotetoggleroute', data);
+                    }
+                });
+            }
+        });
+
+        client.on('disconnect', function(){
+            delete socketRegisteredClientsObj[client.id];
+        });
+
+    });
+
+}
 
 /* Raspi GPIO UART Runtime */
 
-var serialport = require("serialport");
-const Delimiter = require('@serialport/parser-delimiter')
-const Ready = require('@serialport/parser-ready')
-var portName = '/dev/ttyAMA0'; 
+if (runtime == '--raspi-gpio'){
 
-const sxm = require('./public/js/sysexmaker');
-const ConvertBase = require('./public/js/baseconverter');
+    var serialport = require("serialport");
+    const Delimiter = require('@serialport/parser-delimiter')
+    const Ready = require('@serialport/parser-ready')
+    var portName = '/dev/ttyAMA0'; 
 
-var serialPortConfig = {
-  baudRate: 31250,
-  dataBits: 8,
-  parity: 'none',
-  stopBits: 1,
-  flowControl: false,
-  autoOpen: true
-}
-
-var sxMaker = new sxm.sysexMaker.sxMaker(1);
-var s_port = new serialport(portName, serialPortConfig);
-var s_port_buffer = Buffer.alloc(0);
-
-s_port.on('open', function(){
-    console.log("Serialport Opened");
-});
-
-s_port.on('data', function (s_port_data) {
-    
-    s_port_buffer = Buffer.concat([s_port_buffer, s_port_data]);
-
-    if (s_port_buffer.includes("F0777778100104F7",0,"hex")){
-
-        var bufText = s_port_buffer.toString("hex").toUpperCase().split("F7").map((d) => d + "F7");
-        io.to(socketClientID).emit('sysexdata', bufText);
-        socketClientID == "";
-        
+    var serialPortConfig = {
+      baudRate: 31250,
+      dataBits: 8,
+      parity: 'none',
+      stopBits: 1,
+      flowControl: false,
+      autoOpen: true
     }
 
-});
+    s_port = new serialport(portName, serialPortConfig);
 
-/* Midi Runtime */
+    s_port.on('open', function(){
+        console.log("serial/open");
+    });
 
-var midi_runtime = process.argv[2];
+    s_port.on('data', function (s_port_data) {
+        
+        s_port_buffer = Buffer.concat([s_port_buffer, s_port_data]);
 
-if (midi_runtime == '--web-midi'){
+        if (s_port_buffer.includes("F0777778100104F7",0,"hex")){
 
-} else if (midi_runtime == '--raspi-gpio'){
+            var bufText = s_port_buffer.toString("hex").toUpperCase().split("F7").map((d) => d + "F7");
+            io.to(socketClientID).emit('sysexdata', bufText);
+            socketClientID = "";
 
-}
-
-/* File Ops */ 
-
-var writeFile = (fileName, objToSave, callback) => {
-    fs.writeFile("data/" + fileName, JSON.stringify(objToSave, null, 2), function(err) {
-        if(err) {
-            callback({status:err});
-        } else {
-            callback({status:'OK'});
         }
-    }); 
-}
 
-var writeFlatFile = (fileName, objToSave, callback) => {
-    fs.writeFile("data/" + fileName, objToSave, function(err) {
-        if(err) {
-            callback({status:err});
-        } else {
-            callback({status:'OK'});
-        }
-    }); 
-}
+    });
 
-/* Mongo */
-
-if (config.database != "") {
-    mongoose.connect(config.database,{useNewUrlParser: true, /* useUnifiedTopology: true */});
-    mongoose.Promise = global.Promise;
 }
 
 /* API */
@@ -166,20 +139,28 @@ var apiRoutes = express.Router();
 
 apiRoutes.post('/requestfulldump', function(req, res){
 
-    if ( socketClientID == ""){
-        
-        socketClientID = req.body.socketclientid;
-
-        var a = Buffer.from(sxMaker.sxFullDump(), "hex");
-        s_port.write(a);
-        
-        res.json({ status: 'SUCCESS', message: 'Full dump requested, please wait', fromIdentity: req.body });
+    if ( runtime != '--raspi-gpio' ){
+        res.json({ status: 'FAILURE', message: 'Raspi-GPIO Runtime Not Enabled', identity: JSON.stringify(req.body) });
     } else {
-        res.json({ status: 'FAILURE', message: 'Unit busy, please try again', fromIdentity: req.body });
+
+        if ( socketClientID == ""){
+            
+            socketClientID = req.body.socketclientid;
+            s_port_buffer = Buffer.alloc(0);
+
+            var fullDumpReq = Buffer.from(sxMaker.sxFullDump(), "hex");
+            s_port.write(fullDumpReq);
+            
+            res.json({ status: 'SUCCESS', message: 'Full dump requested, please wait', identity: JSON.stringify(req.body) });
+
+        } else {
+
+            res.json({ status: 'FAILURE', message: 'Unit busy, please try again', identity: JSON.stringify(req.body) });
+        }
+
     }
 
 });
-
 
 apiRoutes.post('/deletescene', function(req, res){
 
