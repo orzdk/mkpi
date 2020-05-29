@@ -57,6 +57,7 @@ process.argv.forEach(function (val, index, array) {
 if (config.database != "" && mongoConnect == true) {
     mongoose.connect(config.database,{useNewUrlParser: true, useUnifiedTopology: true });
     mongoose.Promise = global.Promise;
+
 }
 
 /* Socket Stuff */
@@ -137,6 +138,19 @@ if (runtime == '--raspi-gpio'){
 
 var apiRoutes = express.Router(); 
 
+
+apiRoutes.post('/genericcommand', function(req, res){
+
+    console.log(req.body.socketIdentity);
+    console.log(req.body.sysex);
+
+    var command = Buffer.from(req.body.sysex, "hex");
+    s_port.write(command);
+
+    res.json({ status: 'SUCCESS', message: 'Command issued, please wait', identity: JSON.stringify(req.body) });
+
+});
+
 apiRoutes.post('/requestfulldump', function(req, res){
 
     if ( runtime != '--raspi-gpio' ){
@@ -161,6 +175,8 @@ apiRoutes.post('/requestfulldump', function(req, res){
     }
 
 });
+
+/* Scenes */
 
 apiRoutes.post('/deletescene', function(req, res){
 

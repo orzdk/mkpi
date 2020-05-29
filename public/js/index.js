@@ -14,6 +14,7 @@ var inputsE = {
 };
 
 var sxMaker = new sysexMaker.sxMaker(0);
+var sxMakerFull = new sysexMaker.sxMaker(1);
 
 var selectedToggle = { srctype:0, srcid:0, tgttype: 1, tgtid: 0 };
 
@@ -476,8 +477,25 @@ WebMidi.enable(function (err) {
 	
 	}
 
-	/* Sysex Commands */
+	/* Sysex Server Commands */
 
+	var sendSysexServerCommand = function(sysex){
+
+		ajaxPost('api/genericcommand', { socketIdentity, sysex }, function(reply){
+			console.log(reply);
+		});
+
+	}
+
+	var sendFullDumpRequest = function(){
+
+		ajaxPost('api/requestfulldump', socketIdentity, function(reply){
+			console.log(reply);
+		});
+
+	}
+
+	/* Sysex Commands */
 
 	var sendCommand = function(){
 
@@ -511,24 +529,18 @@ WebMidi.enable(function (err) {
 
 	var sendSysex = function(sysex){
 
+		sendSysexServerCommand(sysex.full);
+
 		render = false;
 		sysexRecords = [];
-		readable = "F0 77 " + convertToReadableSysex(sysex) + "F7";
+		readable = convertToReadableSysex(sysex.full);
 		
 		$("#sysex_received").val("");
 		if (readable != "F0 77 77 78 05 7F 00 00 00 F7") $("#sentsysex").val(readable);
 
         var outport = $("#midiOutputSelect").val();
 		output = WebMidi.getOutputByName(outport);
-		output.sendSysex(0x77, sysex);	
-
-	}
-
-	var sendServerRequest = function(){
-
-		ajaxPost('api/requestfulldump', socketIdentity, function(reply){
-			console.log(reply);
-		});
+		output.sendSysex(0x77, sysex.webmidi);	
 
 	}
 
@@ -596,7 +608,7 @@ WebMidi.enable(function (err) {
 		var pipelineID = $("#pipelineID").val();
 
 	    var sx = sxMaker.attachPipeline(pipelineID).srcType(srcType).srcID(srcID);
-	    
+
 	    sendSysex(sx);
 	    sendRefresh();
 
@@ -733,14 +745,7 @@ WebMidi.enable(function (err) {
 			}
 		});
 
-
-		
-		console.log(bmt);
-		console.log(1 << tgtID);
-
 		bmt ^= (1 << tgtID)
-
-		console.log(bmt);
 
 	    for (i=0;i<=15;i++){
 	      if (bmt & (1 << i)){
@@ -748,11 +753,8 @@ WebMidi.enable(function (err) {
 	      }
 	    }
 
-	    console.log(targetArray);
-
 	    if (routeObj == renderObject.routes){
 	    	sx = sxMaker.route().srcType(srctype).srcID(srcid).tgtType(tgttype).tgtIDs(targetArray);
-	    	console.log(convertToReadableSysex(sx));
 	    } else {
 	    	sx = sxMaker.intelliRoute().srcID(srcid).tgtType(tgttype).tgtIDs(targetArray);
 	    }
@@ -854,7 +856,7 @@ WebMidi.enable(function (err) {
 		
 	}
 	
-	function toByteArray(hexString) {
+	var toByteArray = function(hexString) {
 	  var result = [];
 	  for (var i = 0; i < hexString.length; i += 2) {
 	    result.push(parseInt(hexString.substr(i, 2), 16));
@@ -1062,7 +1064,7 @@ WebMidi.enable(function (err) {
 	$("#releaseBypassPipe").on("click", releaseBypassPipe);
 	$("#setDeviceID").on("click", setDeviceID);
 	$("#execute").on("click", sendCommand);
-	$("#sendServerRequest").on("click", sendServerRequest);
+	$("#sendServerRequest").on("click", sendFullDumpRequest);
 
 	$("#menu_interface").on("click", toggleMenu);
 	$("#menu_routing").on("click", toggleMenu);

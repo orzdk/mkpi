@@ -50,31 +50,24 @@
 
 	class sxMaker {
 
-		constructor(returnFullSx) {
-		   this.returnFullSx = returnFullSx;
+		constructor(){}
 
-		}
-
-		formatter(sx) { 
-
-			if (this.returnFullSx == 1){
-				sx.push(247); 
-			} else if (this.returnFullSx == 0){
-				sx = sx.slice(2);
-			}
-
-			return sx;
+		formatter(sysex) { 
+			var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
+			var full = JSON.parse(JSON.stringify(sysex));
+			full.push(247); 
+			return { webmidi, full }
 		}
 
 		/*Utilities*/
 
-		sxFullDump() 	{ return this.formatter(sysexLib.config_request) };
-		sxReset() 		{ return this.formatter(sysexLib.route_reset) };
+		sxFullDump() 	{ return this.formatter(sysexLib.config_request) 	};
+		sxReset() 		{ return this.formatter(sysexLib.route_reset) 		};
 		sxResetIThru() 	{ return this.formatter(sysexLib.route_reset_ithru) };
-		sxHwReset() 	{ return this.formatter(sysexLib.hw_reset) };
-		sxBootSerial() 	{ return this.formatter(sysexLib.config_request) };
-		sxEnableBus() 	{ return this.formatter(sysexLib.enable_bus) };
-		sxDisableBus() 	{ return this.formatter(sysexLib.disable_bus) };
+		sxHwReset() 	{ return this.formatter(sysexLib.hw_reset) 			};
+		sxBootSerial() 	{ return this.formatter(sysexLib.config_request) 	};
+		sxEnableBus() 	{ return this.formatter(sysexLib.enable_bus) 		};
+		sxDisableBus() 	{ return this.formatter(sysexLib.disable_bus) 		};
 
 		/* Routes */
 
