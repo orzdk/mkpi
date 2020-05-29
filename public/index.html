@@ -1,0 +1,501 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>MKUML</title>
+
+    <script src="./js/vendor/jquery-3.4.1.js"></script>
+    <script src="./js/vendor/jquery.cookie.js"></script>    
+    <script src="./js/vendor/webmidi.js"></script>
+    <script src="./js/vendor/dagre.js"></script>
+    <script src="./js/vendor/nomnoml.js"></script>
+    <script src="./js/vendor/socket.io.js"></script>
+
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans:700,600,800,400' type='text/css'>
+    <link rel="stylesheet" href="./css/m2.css" media="screen">
+    <link rel="stylesheet" href="./css/sliders.css" media="screen">
+</head>
+
+<body>
+<h1 style="margin-left: -18px">&nbsp;&nbsp;&nbsp;USBMIDIKliK Control Surface</h1>
+<table>
+    <tr>
+        <td>
+            <div class="parm-div">
+
+               <table class="parm-table">
+
+                     <!-- Interfaces ------------------------->
+
+                     <tr>
+                         <td colspan=2>
+                            <b><a class="menuheader" id="menu_interface">Interface</a></b>
+                            <hr>
+                         </td>
+                      </tr>
+                      <tr class="_menu_interface_ d-none">
+                         <td>
+                            <label class="parm-label">Input</label>
+                         </td>
+                         <td>
+                            <select class="parm-select" id="midiInputSelect"></select>
+                         </td>
+                      </tr>
+                      <tr class="_menu_interface_ d-none">
+                         <td>
+                            <label class="parm-label">output</label>
+                         </td>
+                         <td>
+                            <select class="parm-select" id="midiOutputSelect"></select>
+                         </td>
+                      </tr>
+
+                      <!-- Routing Points ------------------------->
+
+                          <tr>
+                             <td colspan=2>
+                                <b><a class="menuheader" id="menu_routing">Routing Points</a></b>
+                                <hr>
+                             </td>
+                          </tr>
+                          <tr class="_menu_routing_">
+                             <td>
+                                <label class="parm-label">Src Type</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="fromType">
+                                   <option value="0">Cable</option>
+                                   <option selected value="1">Jack</option>
+                                   <option value="2">Virtual</option>
+                                </select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_routing_">
+                             <td>
+                                <label class="parm-label">Src ID</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="fromID">
+                                   <option value="0">0</option>
+                                   <option value="1">1</option>
+                                   <option value="2">2</option>
+                                   <option value="3">3</option>
+                                   <option value="4">4</option>
+                                   <option value="5">5</option>
+                                   <option value="6">6</option>
+                                   <option value="7">7</option>
+                                   <option value="8">8</option>
+                                   <option value="9">9</option>
+                                   <option value="10">10</option>
+                                   <option value="11">11</option>
+                                   <option value="12">12</option>
+                                   <option value="13">13</option>
+                                   <option value="14">14</option>
+                                   <option value="15">15</option>
+                                </select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_routing_">
+                             <td>
+                                <label class="parm-label">Dest Type</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="toType">
+                                   <option selected value="0">Cable</option>
+                                   <option value="1">Jack</option>
+                                   <option value="2">Virtual</option>
+                                </select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_routing_"> 
+                             <td>
+                                <label class="parm-label">Dest ID</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="toID">
+                                   <option selected value="0">0</option>
+                                   <option value="1">1</option>
+                                   <option value="2">2</option>
+                                   <option value="3">3</option>
+                                   <option value="4">4</option>
+                                   <option value="5">5</option>
+                                   <option value="6">6</option>
+                                   <option value="7">7</option>
+                                   <option value="8">8</option>
+                                   <option value="9">9</option>
+                                   <option value="10">10</option>
+                                   <option value="11">11</option>
+                                   <option value="12">12</option>
+                                   <option value="13">13</option>
+                                   <option value="14">14</option>
+                                   <option value="15">15</option>
+                                </select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_routing_">
+                             <td></td>
+                             <td>
+                                <div>
+                                   <input type="button" class="parm-but parm-but-yellow" id="toggleBit" value="Toggle Route">
+                                   <input type="button" class="parm-but parm-but-yellow" id="toggleBitIThru" value="Toggle MThru">
+                                </div>
+                             </td>
+                          </tr>
+
+                          <!-- Pipelines ------------------------->
+
+                           <tr>
+                             <td colspan=2>
+                                <b><a class="menuheader" id="menu_pipelines">Pipelines</a></b>
+                                <hr>
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipelines_">
+                             <td>
+                                <label class="parm-label">Pipeline</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="pipelineID">
+                                   <option value="1">1</option>
+                                   <option value="2">2</option>
+                                   <option value="3">3</option>
+                                   <option value="4">4</option>
+                                   <option value="5">5</option>
+                                   <option value="6">6</option>
+                                   <option value="7">7</option>
+                                   <option value="8">8</option>
+                                </select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipelines_">
+                             <td>
+                                <label class="parm-label">Slots</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="pipelineSlotIdx"></select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipelines_">
+                             <td></td>
+                             <td>
+                                <div>
+                                   <input type="button" class="parm-but parm-but-blue" id="attachPipeline" value="Attach Pipeln">
+                                   <input type="button" class="parm-but parm-but-blue" id="detachPipeline" value="Detach Pipeln">
+                                </div>
+                             </td>
+                          </tr>
+
+                          <!-- Pipes ----------------------------->
+
+                          <tr>
+                             <td colspan=2>
+                                <b><a class="menuheader" id="menu_pipes">Pipes</a>
+                                   <hr>
+                                </b>
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipes_">
+                             <td class="tdf" style="width:100px!important">
+                                <label class="parm-label">Pipe</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="pipeID">
+                                   <option value="0">0 MSGFLTR</option>
+                                   <option value="1">1 NOTECHG</option>
+                                   <option value="2">2 CHANMAP</option>
+                                   <option value="3">3 VELOCHG</option>
+                                   <option value="4">4 CCCHANG</option>
+                                   <option value="5">5 CLKDIVD</option>
+                                   <option value="6">6 LOOPBCK</option>
+                                   <option value="7">7 SLOTCHN</option>
+                                   <option value="8">8 KBSPLIT</option>
+                                   <option value="9">9 VLSPLIT</option>
+                                </select>
+                                <br>
+                                <span style="margin-top: 0px;margin-left: 4px"><label class="pipe-desc" id="pipedescription"></label></span>
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipes_">
+                             <td class="tdf">
+                                <label class="parm-label" id="p1l"></label>
+                             </td>
+                             <td>
+                                <select id="pp1" class="parm-select"></select>
+                                <input id="pp1t" type="text" class="parm-text d-none">
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipes_">
+                             <td>
+                                <label class="parm-label" id="p2l"></label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="pp2"></select>
+                                <input id="pp2t" type="text" class="parm-text d-none">
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipes_">
+                             <td>
+                                <label class="parm-label" id="p3l"></label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="pp3"></select>
+                                <input id="pp3t" type="text" class="parm-text d-none">
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipes_">
+                             <td>
+                                <label class="parm-label" id="p4l"></label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="pp4"></select>
+                                <input id="pp4t" type="text" class="parm-text d-none">
+                             </td>
+                          </tr>
+                          <tr class="_menu_pipes_">
+                             <td></td>
+                             <td>
+                                <div>
+                                   <input type="button" class="parm-but parm-but-green" id="addPipe" value="Add Pipe" style="">
+                                   <input type="button" class="parm-but parm-but-green" id="insertPipe" value="Insert Pipe">
+                                   <input type="button" class="parm-but parm-but-green" id="replacePipe" value="Replace Pipe">
+                                   <input type="button" class="parm-but parm-but-green" id="clearPipe" value="Clear Pipe">
+                                   <input type="button" class="parm-but parm-but-green" id="bypassPipe" value="Bypass">
+                                   <input type="button" class="parm-but parm-but-green" id="releaseBypassPipe" value="Release">
+                                </div>
+                             </td>
+                          </tr>
+
+                          <!-- Scenes ---------------------------->
+
+                           <tr>
+                             <td colspan=2>
+                                <b>
+                                   <a class="menuheader" id="menu_scenes">Scenes</a>
+                                   <hr>
+                                </b>
+                             </td>
+                          </tr>
+                          <tr class="_menu_scenes_ d-none">
+                             <td>
+                                <label class="parm-label">Scene</label>
+                             </td>
+                             <td>
+                                <select class="parm-select" id="scenelist"></select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_scenes_ d-none">
+                             <td>
+                                <label class="parm-label">New Name</label>
+                             </td>
+                             <td>
+                                <input type="text" class="parm-text" id="sceneName" value="testscene">
+                             </td>
+                          </tr>
+                          <tr class="_menu_scenes_ d-none">
+                             <td></td>
+                             <td>
+                                <div>
+                                   <input type="button" class="parm-but parm-but-pink" id="saveScene" value="Save">
+                                   <input type="button" class="parm-but parm-but-pink" id="loadScene" value="Load">
+                                </div>
+                             </td>
+                          </tr>
+
+                          <!-- Options --------------------------->
+
+                           <tr>
+                             <td colspan=2>
+                                <b>
+                                   <a class="menuheader" id="menu_options">Options</a>
+                                   <hr>
+                                </b>
+                             </td>
+                          </tr>
+                          <tr class="_menu_options_ d-none">
+                             <td><label class="parm-label">Commands</label></td>
+                             <td>
+                                <select class="parm-select" id="commandSelect">
+                                   <option value="0">Refresh</option>
+                                   <option value="1">Reset Routes</option>
+                                   <option value="2">Reset Ithru</option>
+                                   <option value="3">Reset Hardware</option>
+                                   <option value="4">Boot Serial</option>
+                                   <option value="5">Enable Bus</option>
+                                   <option value="6">Disable Bus</option>
+                                </select>
+                             </td>
+                          </tr>
+                          <tr class="_menu_options_ d-none">
+                             <td><label class="parm-label"></label></td>
+                             <td>
+                                <div><input type="button" class="parm-but parm-but-blue" id="execute" value="Run"></div>
+                             </td>
+                          </tr>
+                          <tr class="_menu_options_ d-none">
+                             <td><label class="parm-label">Bus ID</label></td>
+                             <td>
+                                <input type="text" class="parm-text" id="deviceID" value="4">
+                                <input type="button" class="parm-but parm-but-yellow" id="setDeviceID" value="Set Bus ID">
+                             </td>
+                          </tr>
+                          <tr class="_menu_options_ d-none">
+                             <td><label class="parm-label">Toggle Pointer</label></td>
+                             <td><input type="checkbox" checked id="checkToggle"></td>
+                          </tr>
+                          <tr class="_menu_options_ d-none">
+                             <td><label class="parm-label">User ID</label></td>
+                             <td>
+                                <input type="text" class="parm-text" id="userinfo">
+                                <input type="button" id="setUserCookie" value="Set" class="parm-but parm-but-green">
+                             </td>
+                          </tr>
+
+                          <!-- UI -------------------------------->
+
+                    <tr>
+                     <td colspan=2>
+                        <b>
+                           <a class="menuheader" id="menu_ui">UI Adjustment</a>
+                           <hr>
+                        </b>
+                     </td>
+                  </tr>
+                    <tr class="">
+                       <td><label class="parm-label">Cable Inputs</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="-1" max="15" value="0" class="slider" id="myRange_s">
+                          </div>
+
+                                <div style="width:175px;">
+                                    <input type="range" min="0" max="15" value="5" class="slider" id="myRange_e">
+                                </div>
+                            </td>
+                        </tr>
+                    </tr>
+
+                    <tr class="">
+                       <td><label class="parm-label">Jack Inputs</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="-1" max="15" value="0" class="slider2" id="myRange_s2">
+                          </div>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="15" value="5" class="slider2" id="myRange_e2">
+                          </div>
+                       </td>
+                    </tr>
+                    <tr class="_menu_ui_ d-none">
+                       <td><label class="parm-label">Pad/Space</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="1" max="50" value="5" class="slider3" id="myRange_padding">
+                          </div>
+                          <div style="width:175px;">
+                             <input type="range" min="1" max="150" value="20" class="slider3" id="myRange_spacing">
+                          </div>
+                       </td>
+                    </tr>
+                    <tr class="_menu_ui_ d-none">
+                       <td><label class="parm-label">Font/Bend</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="4" max="20" value="10" class="slider3" id="myRange_fontsize">
+                          </div>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="200" value="0" class="slider3" id="myRange_edgemargin">
+                          </div>
+                       </td>
+                    </tr>
+                    <tr class="_menu_ui_ d-none">
+                       <td><label class="parm-label">Dir/Ranker</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="1" value="1" class="slider4" id="myRange_direction">
+                          </div>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="2" value="0" class="slider4" id="myRange_ranker">
+                          </div>
+                       </td>
+                    </tr>
+                    <tr class="_menu_ui_ d-none">
+                       <td><label class="parm-label">Unused/Virt</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="1" value="0" class="slider4" id="myRange_showfreeslots">
+                          </div>
+                            <div style="width:175px;">
+                             <input type="range" min="0" max="1" value="1" class="slider4" id="myRange_showvirtuals">
+                          </div>
+                       </td>
+                    </tr>
+                    <tr class="_menu_ui_ d-none">
+                       <td><label class="parm-label">Details/Zoom</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="1" value="1" class="slider5" id="myRange_showparmdetails">
+                          </div>
+                          <div style="width:175px;">
+                             <input type="range" min="1" max="15" value="8" class="slider5" id="myRange_zoom">
+                          </div>
+                       </td>
+                    </tr>
+            </table>
+
+        </div>
+
+        </td>
+        
+        <!-- Second column -->
+        <td style="width:100%;float:left">
+
+            <select class="parm-select" id="uioption" style="margin-left: 24px">
+               <option value="diagram">Diagram</option>              
+               <option value="summary">Summary</option>
+               <option value="sysex">Sysex</option>
+            </select>  
+
+            <br>
+
+            <input type="button" id="sendServerRequest" class="parm-but" value="Server Request">
+            
+            <input type="text" class="parm-text" id="sentsysex" style="margin-left: 24px; border: none!important">
+
+            <div style="display: inline-block;vertical-align: top" id="diagram">
+                <canvas id="target-canvas-jack"></canvas>
+                <canvas id="target-canvas-jackithru"></canvas>
+                <canvas id="target-canvas-cable"></canvas>
+            </div>
+
+            <br>
+
+            <div style="float: left;margin-left: 24px" class="d-none" id="summary">
+                <div style="float: left;" id="summarytxt">Not implemented</div>
+            </div>
+
+            <div style="float: left;margin-left: 24px" class="d-none" id="sysex">
+                <textarea id='sysex_received'></textarea>
+            </div>
+
+        </td>
+
+    </tr>
+</table>
+
+    <script>
+        var jackCanvas = document.getElementById('target-canvas-jack');
+        var jackithruCanvas = document.getElementById('target-canvas-jackithru');
+        var cableCanvas = document.getElementById('target-canvas-cable');
+    </script>
+
+    <script type="text/javascript" src="./js/ajax.js"></script>
+    <script type="text/javascript" src="./js/baseconverter.js"></script>    
+    <script type="text/javascript" src="./js/common.js"></script>
+    <script type="text/javascript" src="./js/mkuml-processor.js"></script>
+    <script type="text/javascript" src="./js/mkuml-render.js"></script>
+    <script type="text/javascript" src="./js/sysexmaker.js"></script>
+    <script type="text/javascript" src="./js/index.js"></script>
+
+</body>
+
+</html>

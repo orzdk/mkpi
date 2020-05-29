@@ -1,0 +1,94 @@
+
+<!doctype html>
+<html>
+<head>
+	<title>MKUML Remote</title>
+
+	<script src="./js/jquery-3.4.1.js"></script>
+	<script src="./js/jquery.cookie.js"></script>
+	<script src="./js/socket.io.js"></script>
+
+	<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans:700,600,800,400' type='text/css'>
+	<link rel="stylesheet" href="./css/midi.css" media="screen">
+	<link rel="stylesheet" href="./css/remote.css" media="screen">
+
+</head>
+<html>
+<body>
+
+<h3>Remote Control</h3>
+
+<label>MK ID<br>
+	<input type="text" class="select mb-control-sf" id="mkid" value="MK87961902393" style="border:1px solid #gray;padding:2px;height:16px!important;width:100px!important">
+</label>
+
+<div style="margin-top:5px;width:500px!important;text-align:center">
+<table style="margin-top:5px;width:500px!important"><tr><td>
+
+<label>fromtype</label><br>	
+<select class="select mb-control" id="fromType" style="width:100px!important">
+	<option value="0">Cable</option>
+	<option selected value="1">Jack</option>
+	<option value="2">Virtual</option>
+</select>
+<tr>
+<td><label>fromid</label><br>	
+<select class="select mb-control" id="fromID" style="width:100px!important">
+	<option value="0">0</option>
+	<option value="1">1</option>
+	<option value="2">2</option>
+	<option value="3">3</option>
+	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	<option value="9">9</option>
+	<option value="10">10</option>
+	<option value="11">11</option>
+	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+	<option value="15">15</option>
+</select>
+<tr>
+<td><label>totype</label><br>	
+<select class="select mb-control" id="toType" style="width:100px!important">
+	<option selected value="0">Cable</option>
+	<option value="1">Jack</option>
+	<option value="2">Virtual</option>
+</select>
+<tr>
+<td><label>toid</label><br>	
+<select class="select mb-control" id="toID" style="width:100px!important">
+	<option selected value="0">0</option>
+	<option value="1">1</option>
+	<option value="2">2</option>
+	<option value="3">3</option>
+	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	<option value="9">9</option>
+	<option value="10">10</option>
+	<option value="11">11</option>
+	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+	<option value="15">15</option>
+</select>
+<tr><td><br><input class="select mb-control" style="width: 100px;margin:0 auto" class="mm-narrow-text" type="button" value="Toggle" id="sendroute">
+</tr>
+</td></tr></table>
+</div>
+
+
+<script type="text/javascript" src="./js/ajax.js"></script>
+<script type="text/javascript" src="./js/common.js"></script>
+<script type="text/javascript" src="./js/baseconverter.js"></script>
+<script type="text/javascript" src="./js/remote.js"></script>
+
+
+</body>
+</html>
