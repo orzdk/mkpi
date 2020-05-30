@@ -49,6 +49,7 @@ var user = "";
 var render = false;
 
 var runtime = "webmidi";
+var webmidiAvailable = false;
 
 var summary = {
 	'cablein': [],
@@ -82,6 +83,7 @@ var toByteArray = function(hexString) {
 WebMidi.enable(function (err) {
 
 	var refreshInputOutputLists = function(){
+
 		var $inputs = $("#midiInputSelect");	  		
 		var $outputs = $("#midiOutputSelect");
 
@@ -92,15 +94,16 @@ WebMidi.enable(function (err) {
 		$.each(WebMidi.outputs, function(i,o) {
 			$outputs.append($("<option />").val(o.name).text(o.name));
 		});
+
 	}
 
 	if (err) {
 		console.log("WebMidi could not be enabled.", err);
-
 		runtime = "raspigpio";
 
 	} else {
 		console.log("WebMidi enabled!");
+		webmidiAvailable = true;
 		refreshInputOutputLists();
 	}
 
@@ -495,14 +498,17 @@ WebMidi.enable(function (err) {
 
 	/* Sysex */
 
-	var sendSysex = function(sysex, cmdid){
+	var sendSysex = function(sysex, cmdid, logClear){
 	
 		render = false;
 		sysexRecords = [];
 
 		$("#sysex_received").val("");
-		$("#sentsysex").val("");
-		$("#sentsysex").css('color','red');
+
+		if (!logClear || !logClear.clear == "dont"){
+			$("#sentsysex").val("");
+			$("#sentsysex").css('color','red');
+		}
 
 		if (runtime == "webmidi"){
 	        var outport = $("#midiOutputSelect").val();
@@ -517,6 +523,9 @@ WebMidi.enable(function (err) {
 	var sendCommand = function(){
 
 		var commandID = $("#commandSelect").val();
+		
+		$("#sentsysex").val("");
+		$("#sentsysex").css('color','red');
 
 		switch(commandID) {
 		  case "0":
@@ -547,6 +556,7 @@ WebMidi.enable(function (err) {
 	/* Sysex Server Commands */
 
 	var serverCommand = function(sysex, cmdid){
+		
 		ajaxPost('api/command', { socketIdentity, sysex, cmdid }, function(reply){
 			$("#sentsysex").val($("#sentsysex").val() + " " + reply.message + ": " + convertToReadableSysex(reply.s.data) + " - Please wait");
 		});
@@ -554,8 +564,9 @@ WebMidi.enable(function (err) {
 	}
 
 	var serverFullDump = function(sysex, cmdid){
+		
+		if (Object.keys(socketIdentity).length > 0)
 		ajaxPost('api/requestfulldump', { socketIdentity }, function(reply){
-			console.log(reply)
 			$("#sentsysex").val($("#sentsysex").val() + " " + reply.message + ": " + convertToReadableSysex(reply.s.data) + " - Please wait");
 		});
 	
@@ -567,8 +578,8 @@ WebMidi.enable(function (err) {
 
 		clearRenderObject();
 
-		if (runtime == "webmidi"){
-			sendSysex(sxMaker.sxFullDump(), 'full_dump');
+		if (runtime == "webmidi" && webmidiAvailable == true){
+			sendSysex(sxMaker.sxFullDump(), 'full_dump', { clear: "dont" });
 		} else{
 			serverFullDump();
 		}
@@ -576,42 +587,36 @@ WebMidi.enable(function (err) {
 	}
 
 	var sendReset = function(){
-
 		sendSysex(sxMaker.sxResetRoutes(), 'reset_routes');
 		sendRefresh();
 	
 	}
 
 	var sendResetIThru = function(){
-
 		sendSysex(sxMaker.sxResetIThru(), 'reset_ithru');
 		sendRefresh();
 	
 	}
 
 	var sendHWReset = function(){
-
 		sendSysex(sxMaker.sxHwReset(), 'hw_reset');
 		sendRefresh();
 	
 	}
 
 	var sendBootSerial = function(){
-
 		sendSysex(sxMaker.sxBootSerial(), 'boot_serial');
 		sendRefresh();
 	
 	}
 
 	var enableBus = function(){
-
 	    sendSysex(sxMaker.sxEnableBus(), 'enable_bus');
 	    sendRefresh();
 	
 	}
 
 	var disableBus = function(){
-
 	    sendSysex(sxMaker.sxDisableBus(), 'disable_bus');
 	    sendRefresh();
 	
@@ -725,7 +730,7 @@ WebMidi.enable(function (err) {
 		var deviceID = $("#deviceID").val();
 	    var sysexSetdeviceID = [~~deviceID];
 
-	    var sx = sxMaker.sxSetBusID(deviceID).pipelineSlotID(pipelineSlotID);
+	    var sx = sxMaker.sxSetBusID(deviceID);
 
 	    sendSysex(sx, 'set_busid');
 	    sendRefresh();
@@ -1032,43 +1037,64 @@ WebMidi.enable(function (err) {
 		clearRenderObject();
 		clearAllCanvas();
 
-		if (runtime == "webmidi"){
-			$("#apiserverdisabled").removeClass("d-none");
-			$("#apiserverenabled").addClass("d-none");
-			$("#midiInputSelect").removeClass("d-disabled");
-			$("#midiOutputSelect").removeClass("d-disabled");			
+		$("#sentsysex").val("");
+		$("#sentsysex").css('color','red');
 
-			refreshInputOutputLists();
-			sendRefresh();
-		} else {
+			if (runtime == "webmidi"){
 
-			$("#midiOutputSelect").empty();
-			$("#midiInputSelect").empty();
+				if (webmidiAvailable == false){
+					$("#apiserverdisabled").addClass("d-none");
+					$("#apiserverenabled").addClass("d-none");
+					$("#webmidiunavailable").removeClass("d-none");
 
-			$("#apiserverdisabled").addClass("d-none");
-			$("#apiserverenabled").removeClass("d-none");
-			$("#midiInputSelect").addClass("d-disabled");
-			$("#midiOutputSelect").addClass("d-disabled");
+				} else {
 
-			ajaxPost('api/sysinfo', {}, function(reply){
+					$("#apiserverdisabled").removeClass("d-none");
+					$("#apiserverenabled").addClass("d-none");
+					$("#webmidiunavailable").addClass("d-none");
+					$("#midiInputSelect").removeClass("d-disabled");
+					$("#midiOutputSelect").removeClass("d-disabled");
 
-				if (reply.status == "SUCCESS"){
-	                $("#apiserverdisabled").addClass("d-none");
-	                $("#apiserverenabled").removeClass("d-none");
-	                $("#apiserverunavailable").addClass("d-none");
-	                $("#apiserverenabled").html("Using API Server (" + reply.message + ")");
+					refreshInputOutputLists();
+					sendRefresh();							
+				}	
 
-	                sendRefresh();
-	            } else {
-	           		$("#apiserverdisabled").addClass("d-none");
-	                $("#apiserverenabled").addClass("d-none");
-	                $("#apiserverunavailable").removeClass("d-none");
-	            }
-	            
-			});
 
-		}
 
+			} else {
+
+				$("#midiOutputSelect").empty();
+				$("#midiInputSelect").empty();
+
+				$("#apiserverdisabled").addClass("d-none");
+				$("#apiserverenabled").removeClass("d-none");
+				$("#webmidiunavailable").addClass("d-none");
+				$("#midiInputSelect").addClass("d-disabled");
+				$("#midiOutputSelect").addClass("d-disabled");
+
+				ajaxPost('api/sysinfo', {}, function(reply){
+
+					if (reply.status == "SUCCESS"){
+		                $("#apiserverdisabled").addClass("d-none");
+		                $("#apiserverenabled").removeClass("d-none");
+		                $("#webmidiunavailable").addClass("d-none");
+		                $("#apiserverunavailable").addClass("d-none");
+		                $("#apiserverenabled").html("Using API Server (" + reply.message + ")");
+
+		                $("#sentsysex").val("");
+						$("#sentsysex").css('color','red');
+
+		                sendRefresh();
+		            } else {
+		           		$("#apiserverdisabled").addClass("d-none");
+		                $("#apiserverenabled").addClass("d-none");
+		                $("#webmidiunavailable").addClass("d-none");
+		                $("#apiserverunavailable").removeClass("d-none");
+		            }
+		            
+				});
+
+			}	
 	}
 
 	/* Main */
@@ -1106,6 +1132,7 @@ WebMidi.enable(function (err) {
 	updateNomnomHeader();
 	refreshParameterUI(true,true,true,true);
 	loadSceneList();
+	midiRuntimeSelectChanged();
 	sendRefresh();
 
 	$("#toggleBit").on("click", toggleBit);
