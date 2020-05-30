@@ -13,7 +13,7 @@
 	}
 
 	.red{
-		background-color: red;
+		background-color: red!important;
 	}
 	
 	.menuheader{
@@ -140,6 +140,10 @@
 
 	.d-invalid{
 		background-color: #ffdddd
+	}
+
+	.d-disabled{
+		background-color: #dddddd!important
 	}
 
 	.pipe-desc{ color: darkgreen; font-size: 10px; margin: 0px!important; margin-left: 4px}

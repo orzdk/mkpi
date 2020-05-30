@@ -1,32 +1,5 @@
 (function() {
 
-	/*
-	USAGE :
-	------------------------------------------------------------------------------------------------------------------------
-	sxMaker.sxFullDump();
-	sxMaker.sxReset();
-	sxMaker.sxResetIThru();
-	sxMaker.sxHwReset();
-	sxMaker.sxBootSerial();
-	
-	sxMaker.sxEnableBus();
-	sxMaker.sxDisableBus();
-	sxMaker.setBusID(busID);
-
-	sxMaker.attachPipeline(pipelineID).srcType(srctype).srcID(srcid);
-	sxMaker.detachPipeline().srcType(srctype).srcID(srcid);
-
-	sxMaker.addPipeToPipeline(pipelineID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
-	sxMaker.insertPipeToPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
-	sxMaker.replacePipeInPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
-
-	sxMaker.clearPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
-	sxMaker.bypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
-	sxMaker.releaseBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
-    
-    sxMaker.route().srcTtype(srcType).srcID(srcID).tgtType(tgtType).tgtIDs(tgtIDs);
-    sxMaker.intelliRoute().srcID(srcID).tgtType(tgtType).tgtIDs(tgtIDs);
-	*/
 
 	var sysexLib = {
 		config_request:    [ 0xF0, 0x77, 0x77, 0x78, 0x05, 0x7F, 0x0, 0x0, 0x0 ],
@@ -62,7 +35,7 @@
 		/*Utilities*/
 
 		sxFullDump() 	{ return this.formatter(sysexLib.config_request) 	};
-		sxReset() 		{ return this.formatter(sysexLib.route_reset) 		};
+		sxResetRoutes() { return this.formatter(sysexLib.route_reset) 		};
 		sxResetIThru() 	{ return this.formatter(sysexLib.route_reset_ithru) };
 		sxHwReset() 	{ return this.formatter(sysexLib.hw_reset) 			};
 		sxBootSerial() 	{ return this.formatter(sysexLib.config_request) 	};
@@ -71,7 +44,7 @@
 
 		/* Routes */
 
-	    route() {
+	    sxRoute() {
 	        return {
 	            srcType : (srcType) => {
 	            	return {
@@ -97,7 +70,7 @@
 	        }
 	    }
 
-	    intelliRoute() {
+	    sxIntelliRoute() {
         	return {
         		srcID : (srcID) => {
         			return {
@@ -121,7 +94,7 @@
 
 	    /* Pipelines */
 
-	    attachPipeline(pipelineID) {
+	    sxAttachPipeline(pipelineID) {
 	        return {
 	            srcType : (srcType) => {
 	                return {
@@ -136,7 +109,7 @@
 	        };
 	    }
 
-	    detachPipeline() {
+	    sxDetachPipeline() {
 	        return {
 	            srcType : (srcType) => {
 	                return {
@@ -154,7 +127,7 @@
 
 	    /* Pipes */
 
-	    addPipeToPipeline(pipelineID) {
+	    sxAddPipeToPipeline(pipelineID) {
 	        return {
 	            pipeID : (pipeID) => {
 	                return {
@@ -172,7 +145,7 @@
 	        };
 	    }
 
-	    insertPipeToPipeline(pipelineID) {
+	    sxInsertPipeToPipeline(pipelineID) {
 	        return {
 	            pipelineSlotID : (pipelineSlotID) => {
 	            	return {
@@ -196,7 +169,7 @@
 	        }
 	    }
 
-	    replacePipeInPipeline(pipelineID) {
+	    sxReplacePipeInPipeline(pipelineID) {
 	        return {
 	            pipelineSlotID : (pipelineSlotID) => {
 	            	return {
@@ -220,7 +193,7 @@
 	        }
 	    }
 
-	    clearPipelineSlot(pipelineID) {
+	    sxClearPipelineSlot(pipelineID) {
 	        return {
 	            pipelineSlotID : (pipelineSlotID) => {
 
@@ -235,7 +208,7 @@
 	    	}	
 	    }
 	    
-	    bypassPipelineSlot(pipelineID) {
+	    sxBypassPipelineSlot(pipelineID) {
 	        return {
 	            pipelineSlotID : (pipelineSlotID) => {
 
@@ -250,7 +223,7 @@
 	    	}	
 	    }
 
-	    releaseBypassPipelineSlot(pipelineID) {
+	    sxReleaseBypassPipelineSlot(pipelineID) {
 	        return {
 	            pipelineSlotID : (pipelineSlotID) => {
 
@@ -267,7 +240,7 @@
 
 	    /* Bus */
 
-	    setBusID(busID) {
+	    sxSetBusID(busID) {
     		return this.formatter(sysexLib.set_busid
     		.concat([
 				~~busID

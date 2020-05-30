@@ -30,3 +30,374 @@ var writeFlatFile = (fileName, objToSave, callback) => {
 
 //"abcd".match(/.{1,3}/g)
 
+/* MIDI Rest API */
+
+apiRoutes.post('/deletescene', function(req, res){
+
+});
+
+apiRoutes.post('/resetrouting', function(req, res){
+
+});
+
+apiRoutes.post('/resetirouting', function(req, res){
+
+});
+
+apiRoutes.post('/resethardware', function(req, res){
+
+});
+
+apiRoutes.post('/bootserial', function(req, res){
+
+});
+
+apiRoutes.post('/enablebus', function(req, res){
+
+});
+
+apiRoutes.post('/attachpipeline', function(req, res){
+
+});
+
+apiRoutes.post('/detachpipeline', function(req, res){
+
+});
+
+apiRoutes.post('/addpipe', function(req, res){
+
+});
+
+apiRoutes.post('/insertpipe', function(req, res){
+
+});
+
+apiRoutes.post('/replacepipe', function(req, res){
+
+});
+
+apiRoutes.post('/clearpipe', function(req, res){
+
+});
+
+apiRoutes.post('/bypasspipe', function(req, res){
+
+});
+
+apiRoutes.post('/releasebypasspipe', function(req, res){
+
+});
+
+apiRoutes.post('/setdeviceid', function(req, res){
+
+};
+
+apiRoutes.post('/toggleroute', function(req, res){
+
+};
+
+apiRoutes.post('/toggleiroute', function(req, res){
+
+};
+
+
+
+apiRoutes.post('/resetrouting', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetRoute(), "hex")
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/resetirouting', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetIThru(), "hex")
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/resethardware', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxHwReset(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/bootserial', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxBootSerial(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/enablebus', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxEnableBus(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/disablebus', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxDisableBus(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/attachpipeline', function(req, res){
+    var pipelineID, srctype, srcid;
+    var sysex = sxMaker.sxAttachPipeline(pipelineID).srcType(srctype).srcID(srcid);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/detachpipeline', function(req, res){
+    var srctype, srcid;
+    var sysex = sxMaker.sxDetachPipeline().srcType(srctype).srcID(srcid);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/addpipe', function(req, res){
+    var pipelineID, srctype, srcid, pp1, pp2, pp3, pp4;
+    var sysex = sxMaker.sxAddPipeToPipeline(pipelineID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);  
+    s_port.write(sysex); 
+});
+
+apiRoutes.post('/insertpipe', function(req, res){
+    var pipelineID, pipelineSlotID, srctype, pipeID, pp1, pp2, pp3, pp4;
+    var sysex = sxMaker.sxInsertPipeToPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/replacepipe', function(req, res){
+    var pipelineID, pipelineSlotID, srctype, pipeID, pp1, pp2, pp3, pp4;
+    var sysex = sxMaker.sxReplacePipeInPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/clearpipe', function(req, res){
+    var pipelineID, pipelineSlotID;
+    var sysex = sxMaker.sxClearPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/bypasspipe', function(req, res){
+    var pipelineID, pipelineSlotID;
+    var sysex = sxMaker.sxBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/releasebypasspipe', function(req, res){
+    var pipelineID, pipelineSlotID;
+    var sysex = sxMaker.sxReleaseBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/setdeviceid', function(req, res){
+    var sysex = sxMaker.setBusID(busID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/toggleroute', function(req, res){
+    var srcType,srcID, tgtType, tgtIDs;
+    var sysex = sxMaker.sxRoute().srcType(srcType).srcID(srcID).tgtType(tgtType).tgtIDs(tgtIDs);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/toggleiroute', function(req, res){
+    var srcID, tgtType, tgtIDs;
+    var sysex = sxMaker.sxIntelliRoute().srcID(srcID).tgtType(tgtType).tgtIDs(tgtIDs);
+    s_port.write(sysex);
+});
+
+
+
+
+apiRoutes.post('/resetrouting', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetRoute(), "hex")
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/resetirouting', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetIThru(), "hex")
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/resethardware', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxHwReset(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/bootserial', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxBootSerial(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/enablebus', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxEnableBus(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/disablebus', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxDisableBus(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/attachpipeline/:pipelineID/:srctype/:srcid', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rp.pipelineID).srcType(rp.srctype).srcID(rp.srcid));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/detachpipeline/:srctype/:srcid', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rp.srctype).srcID(rp.srcid));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/addpipe/:pipelineID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rp.pipelineID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4));  
+    s_port.write(sysex); 
+});
+
+apiRoutes.post('/insertpipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/replacepipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/clearpipe/:pipelineID/:pipelineSlotID', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/bypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/releasebypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/setdeviceid/:busID', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(xMaker.setBusID(rp.busID));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/toggleroute/:srcType/:srcID/:tgtType/:tgtIDs', function(req, res){
+    var rp = req.params;
+    var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rp.srcType).srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtids));
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/toggleiroute/:srcID/:tgtType/:tgtIDs', function(req, res){
+    var rp = req.params;
+    var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtIDs));
+    s_port.write(sysex);
+});
+
+
+----------------
+
+
+apiRoutes.post('/resetroutingb', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetRoute(), "hex")
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/resetiroutingb', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetIThru(), "hex")
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/resethardwareb', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxHwReset(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/bootserialb', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxBootSerial(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/enablebusb', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxEnableBus(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/disablebusb', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxDisableBus(), "hex")
+    s_port.write(sysex);    
+});
+
+apiRoutes.post('/attachpipelineb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxAttachPipeline(rb.pipelineID).srcType(rb.srctype).srcID(rb.srcid);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/detachpipelineb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxDetachPipeline().srcType(rb.srctype).srcID(rb.srcid);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/addpipeb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxAddPipeToPipeline(rb.pipelineID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.p3, rb.pp4);  
+    s_port.write(sysex); 
+});
+
+apiRoutes.post('/insertpipeb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxInsertPipeToPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/replacepipeb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxReplacePipeInPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/clearpipeb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxClearPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/bypasspipeb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/releasebypasspipeb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxReleaseBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/setdeviceidb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.setBusID(rb.busID);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/togglerouteb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxRoute().srcType(rb.srcType).srcID(rb.rcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs);
+    s_port.write(sysex);
+});
+
+apiRoutes.post('/toggleirouteb', function(req, res){
+    var rb = req.body;
+    var sysex = sxMaker.sxIntelliRoute().srcID(rb.srcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs);
+    s_port.write(sysex);
+});
+
+
+
+

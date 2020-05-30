@@ -33,6 +33,25 @@
                             <hr>
                          </td>
                       </tr>
+                      
+                      <tr class="_menu_interface_ d-none">
+                         <td>
+                            <label class="parm-label">MIDI Runtime</label>
+                         </td>
+                         <td>
+                            <select class="parm-select" id="midiRuntimeSelect">
+                                <option value="webmidi">Web-MIDI</option>
+                                <option value="raspigpio">Raspberry GPIO API</option>
+                            </select>
+                            <br>
+                            <span style="font-size:10px;color:#555555" id="apiserverdisabled">API Server Not Used</span>
+                            <span style="font-size:10px;color:darkgreen" id="apiserverenabled" class="d-none">API Server Available</span>
+                            <span style="font-size:10px;color:darkred" id="apiserverunavailable" class="d-none">API Server Unavailable !</span>
+                         </td>
+                      </tr>
+
+                      
+
                       <tr class="_menu_interface_ d-none">
                          <td>
                             <label class="parm-label">Input</label>
@@ -457,7 +476,7 @@
 
             <br>
 
-            <input type="button" id="sendServerRequest" class="parm-but" value="Server Request">
+            <!--<input type="button" id="sendServerRequest" class="parm-but" value="Server Request">-->
             
             <input type="text" class="parm-text" id="sentsysex" style="margin-left: 24px; border: none!important">
 
