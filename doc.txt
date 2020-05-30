@@ -28,28 +28,28 @@ GET-API:
 POST-API:
 ---------
 
-/api/resetroutingb
-/api/resetiroutingb
-/api/resethardwareb
-/api/bootserialb
+/api/resetrouting
+/api/resetirouting
+/api/resethardware
+/api/bootserial
 
-/api/enablebusb
-/api/disablebusb
-/api/setdeviceidb
+/api/enablebus
+/api/disablebus
+/api/setdeviceid
 
-/api/attachpipelineb
-/api/detachpipelineb
+/api/attachpipeline
+/api/detachpipeline
 
-/api/addpipeb
-/api/insertpipeb
-/api/replacepipeb
+/api/addpipe
+/api/insertpipe
+/api/replacepipe
 
-/api/clearpipeb
-/api/bypasspipeb
-/api/releasebypasspipeb
+/api/clearpipe
+/api/bypasspipe
+/api/releasebypasspipe
 
-/api/togglerouteb
-/api/toggleirouteb
+/api/toggleroute
+/api/toggleiroute
 
 sysexmaker.js:
 --------------

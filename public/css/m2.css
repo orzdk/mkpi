@@ -4,12 +4,20 @@
 
 	body{
 		height: 100%;
-		padding: 20px;
+		padding: 18px;
 		padding-top: 0px
 	}
 
 	canvas{
-		vertical-align: top;
+		vertical-align: top!important
+	}
+
+	input[type="button"]{
+		cursor: pointer
+	}
+
+	input[type="button"]:hover{
+		background-color: gray
 	}
 
 	.red{
@@ -19,12 +27,13 @@
 	.menuheader{
 		font-size: 11px;
 		font-weight: bold´;
-		        user-select: none;
+		user-select: none;
         -moz-user-select: none;
         -khtml-user-select: none;
         -webkit-user-select: none;
         -o-user-select: none;
-        cursor:pointer
+        cursor:pointer;
+        color:darkgreen
 	}
 
 	#sysex_received{
@@ -38,21 +47,20 @@
 	}
 
 	.parm-div{
-		/*border: 2px solid black;*/
 		background-color: #ffffff;
 		color: black;
 		height: 90%!important;
-		width: 375px;
+		width: 320px;
 		padding: 4px;
 		overflow: hidden;
 	}
 
 	.parm-select{
 		border: 2px solid black;
-		padding: 1px;
+		padding: 0px;
 		background-color: white;
-		color: black:
-		height: 26px;
+		color: darkblue:
+		height: 24px;
 		margin-top: 4px;
 		margin-bottom: : 1px;
 		font-size: 11px;
@@ -63,8 +71,8 @@
 		border: 2px solid black;
 		padding: 3px;
 		background-color: white;
-		color: black:
-		height: 16px;
+		color: darkblue:
+		height: 12px!important;
 		font-size: 11px;
 		font-weight: bold;
 		width: 76.5%!important;
@@ -74,7 +82,6 @@
 	.parm-but{
 		border: 2px solid black;
 		padding: 3px;
-		
 		color: black:
 		height: 16px;
 		font-size: 11px;
@@ -101,8 +108,13 @@
 
 	.parm-label{
 		margin: 4px;
-		font-size: 12px;
-		font-weight: bold
+		font-size: 11px;
+		font-weight: bold;
+		user-select: none;
+        -moz-user-select: none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -o-user-select: none;
 	}
 
 	.parm-label-dis{
@@ -111,7 +123,6 @@
 		font-weight: bold;
 		color: lightgray
 	}
-
 
 	.parm-table{
 		width:90%
@@ -124,9 +135,9 @@
 	}
 
 	body{ vertical-align: top; }
-	td{ vertical-align: top; }
 	table{ vertical-align: top; text-align: left}
-	select { width: 80%; border-radius: 4px  }
+	td{ vertical-align: top; padding:0px}	
+	select { width: 80%; border-radius: 0px  }
 	button {  border-radius: 8px!important  }
 	option { font-weight:bold  }
 
@@ -146,4 +157,9 @@
 		background-color: #dddddd!important
 	}
 
-	.pipe-desc{ color: darkgreen; font-size: 10px; margin: 0px!important; margin-left: 4px}
+	.pipe-desc{ 
+		color: darkgreen; 
+		font-size: 10px; 
+		margin: 0px!important; 
+		margin-left: 4px
+	}

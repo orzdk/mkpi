@@ -17,6 +17,7 @@ var sxMaker = new sxm.sysexMaker.sxMaker();
 var s_port;
 var s_port_buffer = Buffer.alloc(0);
 var s_port_name = '/dev/ttyAMA0'; 
+var s_port_sx = "";
 
 var port = 8001;
 
@@ -57,7 +58,7 @@ process.argv.forEach(function (val, index, array) {
 
 /* Mongo Connect */
 
-if (config.database != "" && mongoConnect == true) {
+if (mongoConnect == true && config.database != "") {
     mongoose.connect(config.database,{useNewUrlParser: true, useUnifiedTopology: true });
     mongoose.Promise = global.Promise;
 
@@ -65,27 +66,30 @@ if (config.database != "" && mongoConnect == true) {
 
 /* Socket Stuff */
 
+var socketRegisteredClientsObj = {};
+var forwardSerialToSocketClientID = "";
+
 if (enableSocket == true){
 
     var io = require("socket.io").listen(httpsserver);
-    var socketRegisteredClientsObj = {};
-    var socketClientID = "";
 
     io.on('connect', function(client){
 
         client.on('register', function(data){
             clientObj =  { app: data.app, mkumlid: data.mkid, socketclientid: client.id };
             socketRegisteredClientsObj[client.id] = clientObj;
-            client.emit('registered', clientObj);
+            client.emit('registered', client.id);
         });
 
         client.on('toggleroute', function(data){
             if (socketRegisteredClientsObj){
+
                 socketRegisteredClientsObj.forEach(function(clientObj){
                     if (clientObj.app == 'mkuml' && clientObj.mkid == data.mkid){
-                        io.to(co.clientid).emit('remotetoggleroute', data);
+                        io.to(co.socketclientid).emit('remotetoggleroute', data);
                     }
                 });
+
             }
         });
 
@@ -125,8 +129,9 @@ if (runtime == '--raspi-gpio'){
         if (s_port_buffer.includes("F0777778100104F7", 0, "hex")){
 
             var bufText = s_port_buffer.toString("hex").toUpperCase().split("F7").map((d) => d + "F7");
-            io.to(socketClientID).emit('sysexdata', bufText);
-            socketClientID = "";
+            io.to(forwardSerialToSocketClientID).emit('sysexdata', bufText);
+
+            forwardSerialToSocketClientID = "";
 
         }
 
@@ -138,38 +143,46 @@ if (runtime == '--raspi-gpio'){
 
 var apiRoutes = express.Router(); 
 
+var initiateDump = function(sysex){
+    s_port_buffer = Buffer.alloc(0);
+    s_port_sx = Buffer.from(sxMaker.sxFullDump().full, "hex")
+    s_port.write(s_port_sx);
+}
+
 apiRoutes.post('/command', function(req, res){
+
+    console.log("api/command" + req.body.cmdid);
+
     if (s_port){
 
         var sysex = Buffer.from(req.body.sysex, "hex");
         s_port.write(sysex);
 
-        res.json({ status: 'SUCCESS', message: ' [' + req.body.cmdid + '] issued, please wait', identity: JSON.stringify(req.body.socketIdentity) });
+        res.json({ status: 'SUCCESS', message: req.body.cmdid + " rcv", s: sysex });
     } else {
-        res.json({ status: 'FAILURE', message: 'Serialport not available', identity: JSON.stringify(req.body.socketIdentity) });
+        res.json({ status: 'FAILURE', message: 'Serialport not available', s: sysex });
     }
 
 });
 
 apiRoutes.post('/requestfulldump', function(req, res){
 
+    console.log("api/requestfulldump");
+
     if ( runtime != '--raspi-gpio' ){
-        res.json({ status: 'FAILURE', message: 'Raspi-GPIO Runtime Not Enabled', identity: JSON.stringify(req.body.socketIdentity) });
+        res.json({ status: 'FAILURE', message: 'Raspi-GPIO Runtime Not Enabled' });
     } else {
 
-        if ( socketClientID == ""){
+        if ( forwardSerialToSocketClientID == ""){
             
-            socketClientID = req.body.socketclientid;
-            s_port_buffer = Buffer.alloc(0);
-
-            var sysex = Buffer.from(sxMaker.sxFullDump().full, "hex");
-            s_port.write(sysex);
+            forwardSerialToSocketClientID = req.body.socketIdentity;
+            initiateDump();
             
-            res.json({ status: 'SUCCESS', message: 'Full dump requested, please wait', identity: JSON.stringify(req.body.socketIdentity) });
+            res.json({ status: 'SUCCESS', message: 'full_dump rcv', s: s_port_sx });
 
         } else {
 
-            res.json({ status: 'FAILURE', message: 'Unit busy, please try again', identity: JSON.stringify(req.body.socketIdentity) });
+            res.json({ status: 'FAILURE', message: 'System busy or crashed, please try again' });
         }
 
     }
@@ -279,104 +292,104 @@ apiRoutes.get('/toggleiroute/:srcID/:tgtType/:tgtIDs', function(req, res){
 /* MIDI Rest API - Body Post */
 
 apiRoutes.post('/sysinfo', function(req, res){
-    var message = "[connected to " + s_port_name + "]"; 
+    var message = "on " + s_port_name; 
     if (!s_port) message = "[error 1: no serial]";
     
     res.json({ status: 'SUCCESS', message });
     
 });
 
-apiRoutes.post('/resetroutingb', function(req, res){
+apiRoutes.post('/resetrouting', function(req, res){
     var sysex = Buffer.from(sxMaker.sxResetRoute(), "hex")
     s_port.write(sysex);
 });
 
-apiRoutes.post('/resetiroutingb', function(req, res){
+apiRoutes.post('/resetirouting', function(req, res){
     var sysex = Buffer.from(sxMaker.sxResetIThru(), "hex")
     s_port.write(sysex);
 });
 
-apiRoutes.post('/resethardwareb', function(req, res){
+apiRoutes.post('/resethardware', function(req, res){
     var sysex = Buffer.from(sxMaker.sxHwReset(), "hex")
     s_port.write(sysex);    
 });
 
-apiRoutes.post('/bootserialb', function(req, res){
+apiRoutes.post('/bootserial', function(req, res){
     var sysex = Buffer.from(sxMaker.sxBootSerial(), "hex")
     s_port.write(sysex);    
 });
 
-apiRoutes.post('/enablebusb', function(req, res){
+apiRoutes.post('/enablebus', function(req, res){
     var sysex = Buffer.from(sxMaker.sxEnableBus(), "hex")
     s_port.write(sysex);    
 });
 
-apiRoutes.post('/disablebusb', function(req, res){
+apiRoutes.post('/disablebus', function(req, res){
     var sysex = Buffer.from(sxMaker.sxDisableBus(), "hex")
     s_port.write(sysex);    
 });
 
-apiRoutes.post('/attachpipelineb', function(req, res){
+apiRoutes.post('/attachpipeline', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxAttachPipeline(rb.pipelineID).srcType(rb.srctype).srcID(rb.srcid));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/detachpipelineb', function(req, res){
+apiRoutes.post('/detachpipeline', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rb.srctype).srcID(rb.srcid));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/addpipeb', function(req, res){
+apiRoutes.post('/addpipe', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rb.pipelineID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.p3, rb.pp4));  
     s_port.write(sysex); 
 });
 
-apiRoutes.post('/insertpipeb', function(req, res){
+apiRoutes.post('/insertpipe', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/replacepipeb', function(req, res){
+apiRoutes.post('/replacepipe', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/clearpipeb', function(req, res){
+apiRoutes.post('/clearpipe', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/bypasspipeb', function(req, res){
+apiRoutes.post('/bypasspipe', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/releasebypasspipeb', function(req, res){
+apiRoutes.post('/releasebypasspipe', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/setdeviceidb', function(req, res){
+apiRoutes.post('/setdeviceid', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.setBusID(rb.busID));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/togglerouteb', function(req, res){
+apiRoutes.post('/toggleroute', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxRoute().srcType(rb.srcType).srcID(rb.rcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs));
     s_port.write(sysex);
 });
 
-apiRoutes.post('/toggleirouteb', function(req, res){
+apiRoutes.post('/toggleiroute', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rb.srcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs));
     s_port.write(sysex);
@@ -406,7 +419,6 @@ apiRoutes.post('/createsysexrecords', function(req, res){
         scene: req.body.scene.trim(), 
         sysex: req.body.sysex
     }];
-
     
     SysexRecord.collection.insert(sysexRecord, (err, docs)=>{
         if (err) {
@@ -432,14 +444,10 @@ apiRoutes.post('/findscenerecords', function(req, res){
 
 apiRoutes.post('/findscenes', function(req, res){
     
-    console.log(req.body.user);
-
 	SysexRecord.collection.distinct("scene", { user: req.body.user }, function(err, scenes) {
 	    if (err) {
-            console.log(err);
 	        res.json({ status: 'ERROR', message: err });
 	    } else {
-            console.log(scenes);
 	        res.json({ status: 'SUCCESS', message: scenes });
 	    }
 	});

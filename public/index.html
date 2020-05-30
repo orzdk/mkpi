@@ -10,10 +10,13 @@
     <script src="./js/vendor/dagre.js"></script>
     <script src="./js/vendor/nomnoml.js"></script>
     <script src="./js/vendor/socket.io.js"></script>
+    <script src="./js/vendor/encoding-indexes.js"></script>
+    <script src="./js/vendor/encoding.js"></script>
 
     <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans:700,600,800,400' type='text/css'>
     <link rel="stylesheet" href="./css/m2.css" media="screen">
     <link rel="stylesheet" href="./css/sliders.css" media="screen">
+
 </head>
 
 <body>
@@ -34,9 +37,9 @@
                          </td>
                       </tr>
                       
-                      <tr class="_menu_interface_ d-none">
+                      <tr class="_menu_interface_">
                          <td>
-                            <label class="parm-label">MIDI Runtime</label>
+                            <label class="parm-label">Runtime</label>
                          </td>
                          <td>
                             <select class="parm-select" id="midiRuntimeSelect">
@@ -44,7 +47,7 @@
                                 <option value="raspigpio">Raspberry GPIO API</option>
                             </select>
                             <br>
-                            <span style="font-size:10px;color:#555555" id="apiserverdisabled">API Server Not Used</span>
+                            <span style="font-size:10px;color:darkgreen" id="apiserverdisabled">Web-MIDI Connected</span>
                             <span style="font-size:10px;color:darkgreen" id="apiserverenabled" class="d-none">API Server Available</span>
                             <span style="font-size:10px;color:darkred" id="apiserverunavailable" class="d-none">API Server Unavailable !</span>
                          </td>
@@ -52,7 +55,7 @@
 
                       
 
-                      <tr class="_menu_interface_ d-none">
+                      <tr class="_menu_interface_">
                          <td>
                             <label class="parm-label">Input</label>
                          </td>
@@ -60,7 +63,7 @@
                             <select class="parm-select" id="midiInputSelect"></select>
                          </td>
                       </tr>
-                      <tr class="_menu_interface_ d-none">
+                      <tr class="_menu_interface_">
                          <td>
                             <label class="parm-label">output</label>
                          </td>
@@ -169,7 +172,7 @@
                                 <hr>
                              </td>
                           </tr>
-                          <tr class="_menu_pipelines_">
+                          <tr class="_menu_pipelines_ d-none">
                              <td>
                                 <label class="parm-label">Pipeline</label>
                              </td>
@@ -186,7 +189,7 @@
                                 </select>
                              </td>
                           </tr>
-                          <tr class="_menu_pipelines_">
+                          <tr class="_menu_pipelines_ d-none">
                              <td>
                                 <label class="parm-label">Slots</label>
                              </td>
@@ -194,7 +197,7 @@
                                 <select class="parm-select" id="pipelineSlotIdx"></select>
                              </td>
                           </tr>
-                          <tr class="_menu_pipelines_">
+                          <tr class="_menu_pipelines_ d-none">
                              <td></td>
                              <td>
                                 <div>
@@ -213,7 +216,7 @@
                                 </b>
                              </td>
                           </tr>
-                          <tr class="_menu_pipes_">
+                          <tr class="_menu_pipes_ d-none">
                              <td class="tdf" style="width:100px!important">
                                 <label class="parm-label">Pipe</label>
                              </td>
@@ -234,7 +237,7 @@
                                 <span style="margin-top: 0px;margin-left: 4px"><label class="pipe-desc" id="pipedescription"></label></span>
                              </td>
                           </tr>
-                          <tr class="_menu_pipes_">
+                          <tr class="_menu_pipes_ d-none">
                              <td class="tdf">
                                 <label class="parm-label" id="p1l"></label>
                              </td>
@@ -243,7 +246,7 @@
                                 <input id="pp1t" type="text" class="parm-text d-none">
                              </td>
                           </tr>
-                          <tr class="_menu_pipes_">
+                          <tr class="_menu_pipes_ d-none">
                              <td>
                                 <label class="parm-label" id="p2l"></label>
                              </td>
@@ -252,7 +255,7 @@
                                 <input id="pp2t" type="text" class="parm-text d-none">
                              </td>
                           </tr>
-                          <tr class="_menu_pipes_">
+                          <tr class="_menu_pipes_ d-none">
                              <td>
                                 <label class="parm-label" id="p3l"></label>
                              </td>
@@ -261,7 +264,7 @@
                                 <input id="pp3t" type="text" class="parm-text d-none">
                              </td>
                           </tr>
-                          <tr class="_menu_pipes_">
+                          <tr class="_menu_pipes_ d-none">
                              <td>
                                 <label class="parm-label" id="p4l"></label>
                              </td>
@@ -270,7 +273,7 @@
                                 <input id="pp4t" type="text" class="parm-text d-none">
                              </td>
                           </tr>
-                          <tr class="_menu_pipes_">
+                          <tr class="_menu_pipes_ d-none">
                              <td></td>
                              <td>
                                 <div>
@@ -330,7 +333,7 @@
                                 </b>
                              </td>
                           </tr>
-                          <tr class="_menu_options_ d-none">
+                          <tr class="_menu_options_">
                              <td><label class="parm-label">Commands</label></td>
                              <td>
                                 <select class="parm-select" id="commandSelect">
@@ -344,24 +347,24 @@
                                 </select>
                              </td>
                           </tr>
-                          <tr class="_menu_options_ d-none">
+                          <tr class="_menu_options_">
                              <td><label class="parm-label"></label></td>
                              <td>
                                 <div><input type="button" class="parm-but parm-but-blue" id="execute" value="Run"></div>
                              </td>
                           </tr>
-                          <tr class="_menu_options_ d-none">
+                          <tr class="_menu_options_">
                              <td><label class="parm-label">Bus ID</label></td>
                              <td>
                                 <input type="text" class="parm-text" id="deviceID" value="4">
                                 <input type="button" class="parm-but parm-but-yellow" id="setDeviceID" value="Set Bus ID">
                              </td>
                           </tr>
-                          <tr class="_menu_options_ d-none">
-                             <td><label class="parm-label">Toggle Pointer</label></td>
-                             <td><input type="checkbox" checked id="checkToggle"></td>
-                          </tr>
-                          <tr class="_menu_options_ d-none">
+                          <tr class="_menu_options_">
+                             <td colspan=2><label class="parm-label">Toggle Pointer
+                             <input type="checkbox" checked id="checkToggle"></label>
+                          </td></tr>
+                          <tr class="_menu_options_">
                              <td><label class="parm-label">User ID</label></td>
                              <td>
                                 <input type="text" class="parm-text" id="userinfo">
@@ -478,7 +481,7 @@
 
             <!--<input type="button" id="sendServerRequest" class="parm-but" value="Server Request">-->
             
-            <input type="text" class="parm-text" id="sentsysex" style="margin-left: 24px; border: none!important">
+            <input type="text" class="parm-text" id="sentsysex" style="font-size:10px;margin-left: 24px; border: none!important">
 
             <div style="display: inline-block;vertical-align: top" id="diagram">
                 <canvas id="target-canvas-jack"></canvas>
