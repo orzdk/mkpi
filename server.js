@@ -131,8 +131,6 @@ if (runtime == '--raspi-gpio'){
             var bufText = s_port_buffer.toString("hex").toUpperCase().split("F7").map((d) => d + "F7");
             io.to(forwardSerialToSocketClientID).emit('sysexdata', bufText);
 
-            forwardSerialToSocketClientID = "";
-
         }
 
     });
@@ -172,121 +170,134 @@ apiRoutes.post('/requestfulldump', function(req, res){
     if ( runtime != '--raspi-gpio' ){
         res.json({ status: 'FAILURE', message: 'Raspi-GPIO Runtime Not Enabled' });
     } else {
-
-        if ( forwardSerialToSocketClientID == ""){
-            
-            forwardSerialToSocketClientID = req.body.socketIdentity;
-            initiateDump();
-            
-            res.json({ status: 'SUCCESS', message: 'full_dump rcv', s: s_port_sx });
-
-        } else {
-
-            res.json({ status: 'FAILURE', message: 'System busy or crashed, please try again' });
-        }
-
+          
+        forwardSerialToSocketClientID = req.body.socketIdentity;
+        initiateDump();
+        
+        res.json({ status: 'SUCCESS', message: 'full_dump rcv', s: s_port_sx });
     }
 
 });
 
 /* MIDI Rest API - Query GET */
 
+var finish = function(res){
+    io.to(forwardSerialToSocketClientID).emit('refreshpush', "Booh");
+    res.sendStatus(200);
+}
+
 apiRoutes.get('/resetrouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetRoute(), "hex")
+    var sysex = Buffer.from(sxMaker.sxResetRoute().full, "hex")
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/resetirouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetIThru(), "hex")
+    var sysex = Buffer.from(sxMaker.sxResetIThru().full, "hex")
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/resethardware', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxHwReset(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxHwReset().full, "hex")
+    s_port.write(sysex);
+    finish(res);    
 });
 
 apiRoutes.get('/bootserial', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxBootSerial(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxBootSerial().full, "hex")
+    s_port.write(sysex); 
+    finish(res);   
 });
 
 apiRoutes.get('/enablebus', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxEnableBus(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxEnableBus().full, "hex")
+    s_port.write(sysex);
+    finish(res);    
 });
 
 apiRoutes.get('/disablebus', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxDisableBus(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxDisableBus().full, "hex")
+    s_port.write(sysex); 
+    finish(res);   
 });
 
 apiRoutes.get('/attachpipeline/:pipelineID/:srctype/:srcid', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rp.pipelineID).srcType(rp.srctype).srcID(rp.srcid));
+    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rp.pipelineID).srcType(rp.srctype).srcID(rp.srcid).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/detachpipeline/:srctype/:srcid', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rp.srctype).srcID(rp.srcid));
+    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rp.srctype).srcID(rp.srcid).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/addpipe/:pipelineID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rp.pipelineID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4));  
+    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rp.pipelineID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);  
     s_port.write(sysex); 
+    finish(res);
 });
 
 apiRoutes.get('/insertpipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4));
+    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/replacepipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4));
+    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/clearpipe/:pipelineID/:pipelineSlotID', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID));
+    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/bypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID));
+    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(req.params.pipelineID).pipelineSlotID(req.params.pipelineSlotID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/releasebypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID));
+    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/setdeviceid/:busID', function(req, res){
     var rp = req.params;
-    var sysex = Buffer.from(xMaker.setBusID(rp.busID));
+    var sysex = Buffer.from(xMaker.setBusID(rp.busID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/toggleroute/:srcType/:srcID/:tgtType/:tgtIDs', function(req, res){
     var rp = req.params;
     var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
-    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rp.srcType).srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtids));
+    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rp.srcType).srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtids).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.get('/toggleiroute/:srcID/:tgtType/:tgtIDs', function(req, res){
     var rp = req.params;
     var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
-    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtIDs).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 /* MIDI Rest API - Body Post */
@@ -300,99 +311,116 @@ apiRoutes.post('/sysinfo', function(req, res){
 });
 
 apiRoutes.post('/resetrouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetRoute(), "hex")
+    var sysex = Buffer.from(sxMaker.sxResetRoute().full, "hex")
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/resetirouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetIThru(), "hex")
+    var sysex = Buffer.from(sxMaker.sxResetIThru().full, "hex")
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/resethardware', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxHwReset(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxHwReset().full, "hex")
+    s_port.write(sysex); 
+    finish(res);   
 });
 
 apiRoutes.post('/bootserial', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxBootSerial(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxBootSerial().full, "hex")
+    s_port.write(sysex);  
+    finish(res);  
 });
 
 apiRoutes.post('/enablebus', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxEnableBus(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxEnableBus().full, "hex")
+    s_port.write(sysex);  
+    finish(res);  
 });
 
 apiRoutes.post('/disablebus', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxDisableBus(), "hex")
-    s_port.write(sysex);    
+    var sysex = Buffer.from(sxMaker.sxDisableBus().full, "hex")
+    s_port.write(sysex);  
+    finish(res);  
 });
 
 apiRoutes.post('/attachpipeline', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rb.pipelineID).srcType(rb.srctype).srcID(rb.srcid));
+    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rb.pipelineID).srcType(rb.srctype).srcID(rb.srcid).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/detachpipeline', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rb.srctype).srcID(rb.srcid));
+    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rb.srctype).srcID(rb.srcid).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/addpipe', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rb.pipelineID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.p3, rb.pp4));  
-    s_port.write(sysex); 
+    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rb.pipelineID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.p3, rb.pp4).full);  
+    s_port.write(sysex);
+    finish(res); 
 });
 
 apiRoutes.post('/insertpipe', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4));
+    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/replacepipe', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4));
+    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/clearpipe', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID));
+    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/bypasspipe', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID));
+    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/releasebypasspipe', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID));
+    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/setdeviceid', function(req, res){
     var rb = req.body;
     var sysex = Buffer.from(sxMaker.setBusID(rb.busID));
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/toggleroute', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rb.srcType).srcID(rb.rcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rb.srcType).srcID(rb.rcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 apiRoutes.post('/toggleiroute', function(req, res){
     var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rb.srcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rb.srcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs).full);
     s_port.write(sysex);
+    finish(res);
 });
 
 

@@ -503,8 +503,6 @@ WebMidi.enable(function (err) {
 			$("#sentsysex").css('color','red');
 		}
 
-		console.log(activeRuntime);
-
 		if (activeRuntime == "webmidi"){
 	        var outport = $("#midiOutputSelect").val();
 			output = WebMidi.getOutputByName(outport);
@@ -555,6 +553,7 @@ WebMidi.enable(function (err) {
 	var serverCommand = function(sysex, cmdid){
 		
 		ajaxPost('api/command', { socketIdentity, sysex, cmdid }, function(reply){
+
 			$("#sentsysex").val($("#sentsysex").val() + " " + reply.message + ": " + convertToReadableSysex(reply.s.data) + " - Please wait");
 		});
 	
@@ -883,6 +882,10 @@ WebMidi.enable(function (err) {
 	    	socketIdentity = data; 
 
 	   	});
+
+	    socket.on('refreshpush', function(){ 
+	    	sendRefresh();
+	    });
 
 	    socket.on('disconnect', function(){ 
 	    	console.log("socket/disconnect"); 
