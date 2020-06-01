@@ -16,6 +16,7 @@ var inputsE = {
 var sxMaker = new sysexMaker.sxMaker();
 var selectedToggle = { srctype:0, srcid:0, tgttype: 1, tgtid: 0 };
 var pipelinePositionsBlank = ["1:","2:","3:","4:","5:","6:","7:","8:"];
+var pipelinePositions = JSON.parse(JSON.stringify(pipelinePositionsBlank));
 
 var globalFontsize = 10;
 var globalSpacing = 20;
@@ -37,25 +38,20 @@ var globalZoom = 9;
 var globalIdentity = "Waiting for identity...";
 var globalVendorProduct = "Waiting for product/vendor id";
 
+var PORTS = [];
+var PIPEDEF = {};
+var ENUMS = {};
+
 var umlHeader = "";
-var allPorts = [];
 var intelliInputs = {};
 var frames = {};	
-var PIPEDEF3 = {};
-var ENUMS3 = {};
 var sysexRecords = [];
 var renderObject = {};
 var user = "";
 var render = false;
 
-var runtime = "webmidi";
-var webmidiAvailable = false;
-
-var summary = {
-	'cablein': [],
-	'jackin': [],
-	'jackithru': []
-};
+var activeRuntime = "none";
+var webmidiConnected = false;
 
 $(document).ready(function(){
 	var newUser = "MK" + parseInt(Math.random() * 100000000000);
@@ -87,6 +83,9 @@ WebMidi.enable(function (err) {
 		var $inputs = $("#midiInputSelect");	  		
 		var $outputs = $("#midiOutputSelect");
 
+		$inputs.empty();
+		$outputs.empty();
+
 		$.each(WebMidi.inputs, function(i,o) {
 			$inputs.append($("<option />").val(o.name).text(o.name));
 		});
@@ -99,11 +98,12 @@ WebMidi.enable(function (err) {
 
 	if (err) {
 		console.log("WebMidi could not be enabled.", err);
-		runtime = "raspigpio";
+		activeRuntime = "none";
 
 	} else {
 		console.log("WebMidi enabled!");
-		webmidiAvailable = true;
+		activeRuntime = "webmidi";
+		webmidiConnected = true;
 		refreshInputOutputLists();
 	}
 
@@ -132,19 +132,20 @@ WebMidi.enable(function (err) {
 
 	}
 
-	var clearPipelineSlotPositions = function(){
+	var refreshPipelineSlotPositions = function(){
+
+		$("#pipelineSlotIdx").empty();
 
 		pipelinePositions = JSON.parse(JSON.stringify(pipelinePositionsBlank));
 
-	}
-
-	var refreshPipelineSlotPositions = function(){
-
-		var $ppos = $("#pipelineSlotIdx");
-
-		$ppos.empty();
+		renderObject.pipes.pipeSlots.forEach((slot)=>{
+			if (slot.slotid == $("#pipelineID").val()){
+				pipelinePositions[slot.pipeidx] = (slot.pipeidx+1) + ": " + PIPEDEF[slot.pipeid].title;
+			} 
+		});
+		
 		for (i=0;i<8;i++){
-			$ppos.append($("<option />").val(i).text(pipelinePositions[i]));
+			$("#pipelineSlotIdx").append($("<option />").val(i).text(pipelinePositions[i]));
 		}
 
 	}
@@ -187,7 +188,7 @@ WebMidi.enable(function (err) {
 		
 		var placeholder = "";
 		var selectedPipeID = $("#pipeID").val();
-		var selectedPipeDefinition = PIPEDEF3[selectedPipeID];	
+		var selectedPipeDefinition = PIPEDEF[selectedPipeID];	
 
 		var pfield = "p" + parameterID;
 		var pselect = "#pp" + parameterID; 
@@ -216,8 +217,8 @@ WebMidi.enable(function (err) {
 
 					enumKey = selectedPipeDefinition[pfield].parmdef.range.min + "-" + selectedPipeDefinition[pfield].parmdef.range.max;
 
-					Object.keys(ENUMS3[enumKey]).forEach(function(key,val) {
-					  $("#pp" + parameterID).append($("<option />").val(key).text(ENUMS3[enumKey][key]));
+					Object.keys(ENUMS[enumKey]).forEach(function(key,val) {
+					  $("#pp" + parameterID).append($("<option />").val(key).text(ENUMS[enumKey][key]));
 					});
 
 				}
@@ -283,8 +284,8 @@ WebMidi.enable(function (err) {
 								}
 							}
 
-							Object.keys(ENUMS3[enumKey]).forEach(function(key,val) {
-							  $("#pp" + parameterID).append($("<option />").val(key).text(ENUMS3[enumKey][key]));
+							Object.keys(ENUMS[enumKey]).forEach(function(key,val) {
+							  $("#pp" + parameterID).append($("<option />").val(key).text(ENUMS[enumKey][key]));
 							});
 
 						}
@@ -303,7 +304,7 @@ WebMidi.enable(function (err) {
 
 	var refreshParameterUI = function(refreshP1, refreshP2, refreshP3, refreshP4){
 
-		$("#pipedescription").text(PIPEDEF3[$("#pipeID").val()].description || "");
+		$("#pipedescription").text(PIPEDEF[$("#pipeID").val()].description || "");
 
 		if (refreshP1) refreshParameterUI1234(1);
 		if (refreshP2) refreshParameterUI1234(2); 
@@ -316,7 +317,7 @@ WebMidi.enable(function (err) {
 
 		var unused = [];
 		
-		unused = allPorts.filter(function(ap) { 
+		unused = PORTS.filter(function(ap) { 
 			var found = false;
 			renderObject.routes.forEach(function(rt){
 				if (rt.src.srcuid == ap.uid || rt.tgt.tgtuid == ap.uid) found = true;
@@ -386,10 +387,10 @@ WebMidi.enable(function (err) {
 					renderObject.pipes.pipeSlots.push(r.pipeSlot);
 
 					if (r.pipeSlot.slotid == $("#pipelineID").val()){
-						pipelinePositions[r.pipeSlot.pipeidx] = (r.pipeSlot.pipeidx+1) + ": " + PIPEDEF3[r.pipeSlot.pipeid].title;
+						pipelinePositions[r.pipeSlot.pipeidx] = (r.pipeSlot.pipeidx+1) + ": " + PIPEDEF[r.pipeSlot.pipeid].title;
 					} 
 					
-					refreshPipelineSlotPositions();
+					//refreshPipelineSlotPositions();
 
 				} else if (r.subfunc == 1 && r.command == 5){
 
@@ -428,19 +429,13 @@ WebMidi.enable(function (err) {
 	var nomnomMakeFrame = function(filter, title, routeData){
 
 		var frameRoutes = filterFrameRoutes(routeData, filter);
-
 		mkumlRender.frameStart(title);
-		summary[filter] = [];
 
 		frameRoutes.forEach(function(r){
 			mkumlRender.elementBox(r, 0, selectedToggle, 0, '->');
 			mkumlRender.renderPipeline(r, renderObject, selectedToggle);
 			mkumlRender.elementBox(r, 1, selectedToggle, 0, '\r\n');
-
-			summary[filter].push("<a style='font-size: 11px;padding:7px; margin: 5px;border:3px solid black;display:inline-block'>" + r.src.srcuid + " routed to " + r.tgt.tgtuid + "</a>");			
 		});
-
-		$("#summarytxt").html("<br>CableIN<hr>" + summary['cablein'].join("<br>") + "<br><br>JackIN<hr>" + summary['jackin'].join("<br>") + "<br><br>JackINThru<hr>" + summary['jackithru'].join("<br>"));
 
 		if (globalShowFreeSlots == 1 ){
 			unusedPorts().forEach(function(p){		
@@ -470,17 +465,15 @@ WebMidi.enable(function (err) {
 
 	var drawUML = function(){
 	
-		frames = {};
+		var hideIthru = $("#hideIthru").is(":checked");
 
-		summary = {
-			'cablein': [],
-			'jackin': [],
-			'jackithru': []
-		};
+		refreshPipelineSlotPositions();
+
+		frames = {};
 
 		if (inputsE['cablein'].min > -1) nomnomMakeFrame('cablein','Cable Input', renderObject.routes); 
 		if (inputsE['jackin'].min > -1 ) nomnomMakeFrame('jackin','Jack Input', renderObject.routes);
-		if (inputsE['jackin'].min > -1 ) nomnomMakeFrame('jackithru','Jack Intellithru', renderObject.intelliRoutes);
+		if (inputsE['jackin'].min > -1 && !hideIthru==true) nomnomMakeFrame('jackithru','Jack Intellithru', renderObject.intelliRoutes);
 
 		if (renderObject.routes.length > 10){
 			clearAllCanvas();
@@ -489,7 +482,7 @@ WebMidi.enable(function (err) {
 			});
 		}
 
-		if (runtime != "webmidi") {
+		if (activeRuntime != "webmidi") {
 			if ($("#sentsysex").val().indexOf("Ready") == -1) $("#sentsysex").val($("#sentsysex").val() + " - Ready");
 			$("#sentsysex").css('color','darkgreen');
 		}
@@ -510,11 +503,15 @@ WebMidi.enable(function (err) {
 			$("#sentsysex").css('color','red');
 		}
 
-		if (runtime == "webmidi"){
+		console.log(activeRuntime);
+
+		if (activeRuntime == "webmidi"){
 	        var outport = $("#midiOutputSelect").val();
 			output = WebMidi.getOutputByName(outport);
 			output.sendSysex(0x77, sysex.webmidi);	
-		} else {
+		} 
+
+		if (activeRuntime == "raspigpio"){
 			serverCommand(sysex.full, cmdid);
 		}
 
@@ -574,13 +571,19 @@ WebMidi.enable(function (err) {
 
 	/* Sysex Server Commandlets */
 
-	var sendRefresh = function(){
+	var sendRefresh = function(clearCanvass){
 
 		clearRenderObject();
+		
+		if (clearCanvass == true){
+			clearAllCanvas();
+		}
 
-		if (runtime == "webmidi" && webmidiAvailable == true){
+		if (activeRuntime == "webmidi"){
 			sendSysex(sxMaker.sxFullDump(), 'full_dump', { clear: "dont" });
-		} else{
+		} 
+
+		if (activeRuntime == "raspigpio"){
 			serverFullDump();
 		}
 
@@ -588,25 +591,25 @@ WebMidi.enable(function (err) {
 
 	var sendReset = function(){
 		sendSysex(sxMaker.sxResetRoutes(), 'reset_routes');
-		sendRefresh();
+		sendRefresh(true);
 	
 	}
 
 	var sendResetIThru = function(){
 		sendSysex(sxMaker.sxResetIThru(), 'reset_ithru');
-		sendRefresh();
+		sendRefresh(true);
 	
 	}
 
 	var sendHWReset = function(){
 		sendSysex(sxMaker.sxHwReset(), 'hw_reset');
-		sendRefresh();
+		sendRefresh(true);
 	
 	}
 
 	var sendBootSerial = function(){
 		sendSysex(sxMaker.sxBootSerial(), 'boot_serial');
-		sendRefresh();
+		sendRefresh(true);
 	
 	}
 
@@ -715,9 +718,12 @@ WebMidi.enable(function (err) {
 
 	var releaseBypassPipe = function(){
 
-		var pipeline = $("#pipelineID").val();
+		var pipelineID = $("#pipelineID").val();
 		var pipelineSlotID = $("#pipelineSlotIdx").val();
 
+		// console.log(pipeline);
+		// console.log(pipelineSlotID);
+		
 	    var sx = sxMaker.sxReleaseBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
 
 	    sendSysex(sx, 'release_bypass_pipe');
@@ -733,7 +739,7 @@ WebMidi.enable(function (err) {
 	    var sx = sxMaker.sxSetBusID(deviceID);
 
 	    sendSysex(sx, 'set_busid');
-	    sendRefresh();
+	    sendRefresh(true);
 
 	}
 
@@ -853,9 +859,7 @@ WebMidi.enable(function (err) {
 				sendSysex({ webmidi, full });
 			});
 
-			init();
-			clearAllCanvas();
-			sendRefresh();
+			sendRefresh(true);
 
 		});
 
@@ -934,8 +938,7 @@ WebMidi.enable(function (err) {
 	});
 
 
-	/* Input Change Events */
-
+	/* UI Handling */
 	var toggleMenu = function(item){
 
 		if ( $("._" + item.target.id + "_").hasClass('d-none') ){
@@ -945,6 +948,124 @@ WebMidi.enable(function (err) {
 		}
 		
 	}
+
+	var cssShow = function(control){
+
+		$("#" + control).removeClass("d-none");
+
+	}
+
+	var cssHide = function(control){
+
+		$("#" + control).addClass("d-none");
+
+	}
+
+	var checkGPIOAPIStatus = function(callback){
+
+		ajaxPost('api/sysinfo', {}, function(reply){
+			callback(reply);            
+		});
+		
+	}
+
+	var checkRuntimeAvailability = function(){
+		
+		var requestedRuntime = $("#midiRuntimeSelect").val();
+
+		$("#sentsysex").val("");
+		$("#sentsysex").css('color','red');
+
+			if (requestedRuntime == "webmidi"){
+
+				if (webmidiConnected == true){
+
+					cssShow("webmidi_connected");
+
+					cssHide("webmidi_unavailable");
+					cssHide("apiserver_connected");
+					cssHide("apiserver_unavailable");
+
+					$("#midiInputSelect").removeClass("d-disabled");
+					$("#midiOutputSelect").removeClass("d-disabled");		
+
+					activeRuntime = "webmidi";
+
+					refreshInputOutputLists();					
+					sendRefresh(true);
+
+				} else {
+	
+					cssShow("webmidi_unavailable");
+
+					cssHide("webmidi_connected");
+					cssHide("apiserver_connected");
+					cssHide("apiserver_unavailable");		
+
+					$("#midiInputSelect").addClass("d-disabled");
+					$("#midiOutputSelect").addClass("d-disabled");		
+
+					activeRuntime = "none";			
+				}	
+
+			}
+
+			if (requestedRuntime == "raspigpio"){
+
+				$("#midiOutputSelect").empty();
+				$("#midiInputSelect").empty();
+
+				$("#midiInputSelect").addClass("d-disabled");
+				$("#midiOutputSelect").addClass("d-disabled");	
+
+				cssShow("apiserver_connected");
+
+                cssHide("apiserver_unavailable");		                					
+				cssHide("webmidi_connected");
+				cssHide("webmidi_unavailable");
+
+				$("#midiInputSelect").addClass("d-disabled");
+				$("#midiOutputSelect").addClass("d-disabled");
+
+				checkGPIOAPIStatus(function(reply){
+
+					if (reply.status == "SUCCESS"){
+
+		                cssShow("apiserver_connected");
+
+		                cssHide("apiserver_unavailable");		                					
+		                cssHide("webmidi_connected");
+		                cssHide("webmidi_unavailable");
+
+
+		                $("#apiserver_connected").html("Using API Server (" + reply.message + ")");
+
+		                $("#sentsysex").val("");
+						$("#sentsysex").css('color','red');
+
+						activeRuntime = "raspigpio";
+
+					} else {
+
+		                cssShow("apiserver_unavailable");	
+
+						cssHide("apiserver_connected");
+		           		cssHide("webmidi_connected");		          
+		                cssHide("webmidi_unavailable");
+
+		                activeRuntime = "none";
+
+					}
+
+					sendRefresh(true);
+
+				});
+
+			}
+
+	}
+
+	/* Input Change Events */
 
 	var pipeIDChanged = function(){
 		refreshParameterUI(true, true, true, true);
@@ -964,6 +1085,10 @@ WebMidi.enable(function (err) {
 
 	var pp4Changed = function(){
 		refreshParameterUI(false, false, false, false);
+	}
+
+	var hideIthruChange = function(){
+		drawUML();
 	}
 
 	var toggleSelectionsChanged = function(e){
@@ -992,15 +1117,9 @@ WebMidi.enable(function (err) {
 
 		if (uioption == "diagram"){
 			$("#sysex").addClass("d-none");
-			$("#summary").addClass("d-none");
 			$("#diagram").removeClass("d-none");
-		} else if (uioption == "summary"){
-			$("#sysex").addClass("d-none");
-			$("#summary").removeClass("d-none");
-			$("#diagram").addClass("d-none");
 		} else if (uioption == "sysex"){
 			$("#sysex").removeClass("d-none");
-			$("#summary").addClass("d-none");
 			$("#diagram").addClass("d-none");
 		}
 
@@ -1008,132 +1127,49 @@ WebMidi.enable(function (err) {
 
 	var inputChanged = function(e){
 
-		if (runtime == "webmidi"){
+		if (activeRuntime == "webmidi"){
 			var midiInputSelect = $("#midiInputSelect").val();
 			var input = WebMidi.getInputByName(midiInputSelect);
 
 			input.addListener("sysex", "all", onSysex);		
 		}
+	
 	}
 
 	var pipelineIDChanged = function(){
-
-		clearPipelineSlotPositions();
-
-		renderObject.pipes.pipeSlots.forEach((slot)=>{
-			if (slot.slotid == $("#pipelineID").val()){
-				pipelinePositions[slot.pipeidx] = (slot.pipeidx+1) + ": " + PIPEDEF3[slot.pipeid].title;
-			} 
-		});
 
 		refreshPipelineSlotPositions();
 			
 	}
 
-	var midiRuntimeSelectChanged = function(){
-		
-		runtime = $("#midiRuntimeSelect").val();
-
-		clearRenderObject();
-		clearAllCanvas();
-
-		$("#sentsysex").val("");
-		$("#sentsysex").css('color','red');
-
-			if (runtime == "webmidi"){
-
-				if (webmidiAvailable == false){
-					$("#apiserverdisabled").addClass("d-none");
-					$("#apiserverenabled").addClass("d-none");
-					$("#webmidiunavailable").removeClass("d-none");
-
-				} else {
-
-					$("#apiserverdisabled").removeClass("d-none");
-					$("#apiserverenabled").addClass("d-none");
-					$("#webmidiunavailable").addClass("d-none");
-					$("#midiInputSelect").removeClass("d-disabled");
-					$("#midiOutputSelect").removeClass("d-disabled");
-
-					refreshInputOutputLists();
-					sendRefresh();							
-				}	
-
-
-
-			} else {
-
-				$("#midiOutputSelect").empty();
-				$("#midiInputSelect").empty();
-
-				$("#apiserverdisabled").addClass("d-none");
-				$("#apiserverenabled").removeClass("d-none");
-				$("#webmidiunavailable").addClass("d-none");
-				$("#midiInputSelect").addClass("d-disabled");
-				$("#midiOutputSelect").addClass("d-disabled");
-
-				ajaxPost('api/sysinfo', {}, function(reply){
-
-					if (reply.status == "SUCCESS"){
-		                $("#apiserverdisabled").addClass("d-none");
-		                $("#apiserverenabled").removeClass("d-none");
-		                $("#webmidiunavailable").addClass("d-none");
-		                $("#apiserverunavailable").addClass("d-none");
-		                $("#apiserverenabled").html("Using API Server (" + reply.message + ")");
-
-		                $("#sentsysex").val("");
-						$("#sentsysex").css('color','red');
-
-		                sendRefresh();
-		            } else {
-		           		$("#apiserverdisabled").addClass("d-none");
-		                $("#apiserverenabled").addClass("d-none");
-		                $("#webmidiunavailable").addClass("d-none");
-		                $("#apiserverunavailable").removeClass("d-none");
-		            }
-		            
-				});
-
-			}	
-	}
-
 	/* Main */
 
-	if (runtime == "webmidi"){
-		var midiInputSelect = $("#midiInputSelect").val();
-		var input = WebMidi.getInputByName(midiInputSelect);
-
-		input.addListener("sysex", "all", onSysex);		
-	}
+	$.ajax({
+	  url: './json/ports.json',
+	  async: false,
+	  dataType: 'json',
+	  success: function (response) { PORTS = response; }
+	});
 
 	$.ajax({
 	  url: './json/pipes.json',
 	  async: false,
 	  dataType: 'json',
-	  success: function (response) { PIPEDEF3 = response; }
+	  success: function (response) { PIPEDEF = response; }
 	});
 
 	$.ajax({
 	  url: './json/enums.json',
 	  async: false,
 	  dataType: 'json',
-	  success: function (response) { ENUMS3 = response; }
+	  success: function (response) { ENUMS = response; }
 	});
-
-	$.ajax({
-	  url: './json/ports.json',
-	  async: false,
-	  dataType: 'json',
-	  success: function (response) { allPorts = response; }
-	});
-
-	clearPipelineSlotPositions();
-	clearRenderObject();
+	
 	updateNomnomHeader();
 	refreshParameterUI(true,true,true,true);
 	loadSceneList();
-	midiRuntimeSelectChanged();
-	sendRefresh();
+	checkRuntimeAvailability();
+	inputChanged();
 
 	$("#toggleBit").on("click", toggleBit);
 	$("#toggleBitIThru").on("click", toggleBitIThru);
@@ -1173,7 +1209,9 @@ WebMidi.enable(function (err) {
 	$("#pp2").on("change", pp2Changed);
 	$("#pp3").on("change", pp3Changed);
 	$("#pp4").on("change", pp4Changed);
-	$("#midiRuntimeSelect").on("change", midiRuntimeSelectChanged);
+	$("#midiRuntimeSelect").on("change", checkRuntimeAvailability);
+	$("#hideIthru").on("change", hideIthruChange);
+
 
 	var slider_s = document.getElementById("myRange_s");
 	var slider_e = document.getElementById("myRange_e");

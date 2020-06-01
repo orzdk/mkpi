@@ -1,3 +1,77 @@
+
+
+    var midiRuntimeSelectChanged = function(){
+        
+        checkRuntimeAvailability();
+        sendRefresh();
+        return;
+
+        runtime = $("#midiRuntimeSelect").val();
+
+        clearRenderObject();
+        clearAllCanvas();
+
+        $("#sentsysex").val("");
+        $("#sentsysex").css('color','red');
+
+            if (runtime == "webmidi"){
+
+                if (webmidiConnected == false){
+                    $("#apiserverdisabled").addClass("d-none");
+                    $("#apiserverenabled").addClass("d-none");
+                    $("#webmidiunavailable").removeClass("d-none");
+
+                } else {
+
+                    $("#apiserverdisabled").removeClass("d-none");
+                    $("#apiserverenabled").addClass("d-none");
+                    $("#webmidiunavailable").addClass("d-none");
+                    $("#midiInputSelect").removeClass("d-disabled");
+                    $("#midiOutputSelect").removeClass("d-disabled");
+
+                    refreshInputOutputLists();
+                    //sendRefresh();                            
+                }   
+
+
+
+            } else {
+
+                $("#midiOutputSelect").empty();
+                $("#midiInputSelect").empty();
+
+                $("#apiserverdisabled").addClass("d-none");
+                $("#apiserverenabled").removeClass("d-none");
+                $("#webmidiunavailable").addClass("d-none");
+                $("#midiInputSelect").addClass("d-disabled");
+                $("#midiOutputSelect").addClass("d-disabled");
+
+                ajaxPost('api/sysinfo', {}, function(reply){
+
+                    if (reply.status == "SUCCESS"){
+                        $("#apiserverdisabled").addClass("d-none");
+                        $("#apiserverenabled").removeClass("d-none");
+                        $("#webmidiunavailable").addClass("d-none");
+                        $("#apiserverunavailable").addClass("d-none");
+                        $("#apiserverenabled").html("Using API Server (" + reply.message + ")");
+
+                        $("#sentsysex").val("");
+                        $("#sentsysex").css('color','red');
+
+                        //sendRefresh();
+                    } else {
+                        $("#apiserverdisabled").addClass("d-none");
+                        $("#apiserverenabled").addClass("d-none");
+                        $("#webmidiunavailable").addClass("d-none");
+                        $("#apiserverunavailable").removeClass("d-none");
+                    }
+                    
+                });
+
+            }   
+    }
+
+
     var dumpStatus = function(){
         console.log("-------------------------------------------------");
         console.log("socketRegisteredClientsObj",socketRegisteredClientsObj);

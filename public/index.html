@@ -26,7 +26,7 @@
         <td>
             <div class="parm-div">
 
-               <table class="parm-table">
+               <table class="parm-table" border=0>
 
                      <!-- Interfaces ------------------------->
 
@@ -39,18 +39,30 @@
                       
                       <tr class="_menu_interface_">
                          <td>
+                            <label class="parm-label">View</label>
+                         </td>
+                         <td>
+                            <select class="parm-select" id="uioption">
+                               <option value="diagram">Diagram</option>              
+                               <option value="sysex">Sysex</option>
+                            </select>  
+                         </td>
+                      </tr>
+
+                      <tr class="_menu_interface_">
+                         <td>
                             <label class="parm-label">Runtime</label>
                          </td>
                          <td>
                             <select class="parm-select" id="midiRuntimeSelect">
                                 <option value="webmidi">Web-MIDI</option>
-                                <option value="raspigpio">Raspberry GPIO API</option>
+                                <option value="raspigpio">Raspberry PI GPIO API</option>
                             </select>
                             <br>
-                            <span style="font-size:10px;color:darkgreen" id="apiserverdisabled" class="d-none">Web-MIDI Connected</span>
-                            <span style="font-size:10px;color:darkgreen" id="webmidiunavailable">Web-MIDI Unavailable</span>
-                            <span style="font-size:10px;color:darkgreen" id="apiserverenabled" class="d-none">API Server Available</span>
-                            <span style="font-size:10px;color:darkred" id="apiserverunavailable" class="d-none">API Server Unavailable !</span>
+                            <span style="font-size:10px;color:darkgreen" id="webmidi_connected" class="d-none">Web-MIDI Connected</span>
+                            <span style="font-size:10px;color:darkgreen" id="webmidi_unavailable">Web-MIDI Unavailable</span>
+                            <span style="font-size:10px;color:darkgreen" id="apiserver_connected" class="d-none">API Server Available</span>
+                            <span style="font-size:10px;color:darkred"   id="apiserver_unavailable" class="d-none">API Server Unavailable !</span>
                          </td>
                       </tr>
 
@@ -359,10 +371,8 @@
                                 <input type="button" class="parm-but parm-but-yellow" id="setDeviceID" value="Set Bus ID">
                              </td>
                           </tr>
-                          <tr class="_menu_options_">
-                             <td colspan=2><label class="parm-label">Toggle Pointer
-                             <input type="checkbox" checked id="checkToggle"></label>
-                          </td></tr>
+
+
                           <tr class="_menu_options_">
                              <td><label class="parm-label">User ID</label></td>
                              <td>
@@ -370,6 +380,18 @@
                                 <input type="button" id="setUserCookie" value="Set" class="parm-but parm-but-green">
                              </td>
                           </tr>
+
+                          <tr class="_menu_options_">
+                             <td><label class="parm-label">Pointer</label></td>
+                             <td><input type="checkbox" checked id="checkToggle">
+                          </td>
+                         </tr>
+                         <tr class="_menu_options_">
+                             <td> <label class="parm-label">Hide iThru</label></td>
+                             <td><input type="checkbox" checked id="hideIthru">
+                          </td>
+                         </tr>
+
 
                           <!-- UI -------------------------------->
 
@@ -469,17 +491,7 @@
         
         <!-- Second column -->
         <td style="width:100%;float:left">
-
-            <select class="parm-select" id="uioption" style="margin-left: 24px">
-               <option value="diagram">Diagram</option>              
-               <option value="summary">Summary</option>
-               <option value="sysex">Sysex</option>
-            </select>  
-
-            <br>
-
-            <!--<input type="button" id="sendServerRequest" class="parm-but" value="Server Request">-->
-            
+           
             <input type="text" class="parm-text" id="sentsysex" style="font-size:10px;margin-left: 24px; border: none!important">
 
             <div style="display: inline-block;vertical-align: top" id="diagram">
@@ -489,10 +501,6 @@
             </div>
 
             <br>
-
-            <div style="float: left;margin-left: 24px" class="d-none" id="summary">
-                <div style="float: left;" id="summarytxt">Not implemented</div>
-            </div>
 
             <div style="float: left;margin-left: 24px" class="d-none" id="sysex">
                 <textarea id='sysex_received'></textarea>

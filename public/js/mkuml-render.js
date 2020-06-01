@@ -38,10 +38,10 @@
 			for (p=0;p<pipes.length;p++){
 
 				var pipeid = pipes[p].pipeid;
-				var pipeTitle = p + ' ' + (PIPEDEF3[pipeid] ? PIPEDEF3[pipeid].title : "");
+				var pipeTitle = p + ' ' + (PIPEDEF[pipeid] ? PIPEDEF[pipeid].title : "");
 				var	nextPipeParms = "";
 
-				if (pipes[p+1]) nextPipeParms = (p+1) + ' ' + PIPEDEF3[pipes[p+1].pipeid].title;				
+				if (pipes[p+1]) nextPipeParms = (p+1) + ' ' + PIPEDEF[pipes[p+1].pipeid].title;				
 
 				var pipep2 = pipes[p].p2;
 				var pipeCommand = cableJackE[pipes[p].p1];
@@ -50,10 +50,10 @@
 
                 var pipeParm1Text;
 
-                if (PIPEDEF3[pipeid].p1.parmdef.enum){
-					pipeParm1Text = globalShowParmDetails == 0 ? "" : '|' + PIPEDEF3[pipeid].p1.parmdef.enum[pipes[p].p1];
+                if (PIPEDEF[pipeid].p1.parmdef.enum){
+					pipeParm1Text = globalShowParmDetails == 0 ? "" : '|' + PIPEDEF[pipeid].p1.parmdef.enum[pipes[p].p1];
 				} else {
-					pipeParm1Text = globalShowParmDetails == 0 ? "" : '|' + PIPEDEF3[pipeid].p1.title;
+					pipeParm1Text = globalShowParmDetails == 0 ? "" : '|' + PIPEDEF[pipeid].p1.title;
 				}
 
 				var pt = mkumlRender.pipeTagCode(pathIsBlocked,pipes[p]);
