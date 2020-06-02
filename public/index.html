@@ -321,7 +321,7 @@
                                 <label class="parm-label">New Name</label>
                              </td>
                              <td>
-                                <input type="text" class="parm-text" id="sceneName" value="testscene">
+                                <input type="text" class="parm-text" id="sceneName" value="">
                              </td>
                           </tr>
                           <tr class="_menu_scenes_ d-none">
@@ -404,7 +404,7 @@
                      </td>
                   </tr>
                     <tr class="">
-                       <td><label class="parm-label">Cable Inputs</label></td>
+                       <td><label class="parm-label">Cables</label></td>
                        <td>
                           <div style="width:175px;">
                              <input type="range" min="-1" max="15" value="0" class="slider" id="myRange_s">
@@ -418,7 +418,7 @@
                     </tr>
 
                     <tr class="">
-                       <td><label class="parm-label">Jack Inputs</label></td>
+                       <td><label class="parm-label">Jacks</label></td>
                        <td>
                           <div style="width:175px;">
                              <input type="range" min="-1" max="15" value="0" class="slider2" id="myRange_s2">
@@ -428,6 +428,19 @@
                           </div>
                        </td>
                     </tr>
+
+                    <tr class="">
+                       <td><label class="parm-label">Virtuals</label></td>
+                       <td>
+                          <div style="width:175px;">
+                             <input type="range" min="-1" max="15" value="0" class="slider6" id="myRange_v1">
+                          </div>
+                          <div style="width:175px;">
+                             <input type="range" min="0" max="15" value="5" class="slider6" id="myRange_v2">
+                          </div>
+                       </td>
+                    </tr>
+
                     <tr class="_menu_ui_ d-none">
                        <td><label class="parm-label">Pad/Space</label></td>
                        <td>
@@ -496,8 +509,9 @@
 
             <div style="display: inline-block;vertical-align: top" id="diagram">
                 <canvas id="target-canvas-jack"></canvas>
-                <canvas id="target-canvas-jackithru"></canvas>
                 <canvas id="target-canvas-cable"></canvas>
+                <canvas id="target-canvas-virtual"></canvas>
+                <canvas id="target-canvas-jackithru"></canvas>
             </div>
 
             <br>
@@ -513,8 +527,9 @@
 
     <script>
         var jackCanvas = document.getElementById('target-canvas-jack');
+        var virtualCanvas = document.getElementById('target-canvas-virtual');
+        var cableCanvas = document.getElementById('target-canvas-cable');   
         var jackithruCanvas = document.getElementById('target-canvas-jackithru');
-        var cableCanvas = document.getElementById('target-canvas-cable');
     </script>
 
     <script type="text/javascript" src="./js/ajax.js"></script>

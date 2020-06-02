@@ -9,7 +9,7 @@ var inputsE = {
 	'jackithru': { min: 0, max: 5, canvas: jackithruCanvas },
 	'cableout': { min: 0, max: 5 },
 	'jackout': { min: 0, max: 5 },
-	'virtualin': { min: 0, max: 5 },
+	'virtualin': { min: 0, max: 5 , canvas: virtualCanvas},
 	'virtualout': { min: 0, max: 5 }
 };
 
@@ -41,6 +41,7 @@ var globalVendorProduct = "Waiting for product/vendor id";
 var PORTS = [];
 var PIPEDEF = {};
 var ENUMS = {};
+var RESET_PIPES = [];
 
 var umlHeader = "";
 var intelliInputs = {};
@@ -429,25 +430,28 @@ WebMidi.enable(function (err) {
 	var nomnomMakeFrame = function(filter, title, routeData){
 
 		var frameRoutes = filterFrameRoutes(routeData, filter);
-		mkumlRender.frameStart(title);
 
-		frameRoutes.forEach(function(r){
-			mkumlRender.elementBox(r, 0, selectedToggle, 0, '->');
-			mkumlRender.renderPipeline(r, renderObject, selectedToggle);
-			mkumlRender.elementBox(r, 1, selectedToggle, 0, '\r\n');
-		});
+		if (frameRoutes.length > 0 || globalShowFreeSlots == 1) {
+			mkumlRender.frameStart(title);
 
-		if (globalShowFreeSlots == 1 ){
-			unusedPorts().forEach(function(p){		
-				if ( p.id >= inputsE[p.tag].min && p.id <= inputsE[p.tag].max && (p.tag.indexOf("cable") == -1 || filter != "jackithru")) {
-					mkumlRender.elementBox(p, 1, selectedToggle, 1, '\r\n');
-				}
+			frameRoutes.forEach(function(r){
+				mkumlRender.elementBox(r, 0, selectedToggle, 0, '->');
+				mkumlRender.renderPipeline(r, renderObject, selectedToggle);
+				mkumlRender.elementBox(r, 1, selectedToggle, 0, '\r\n');
 			});
-		}
 
-		mkumlRender.genericEnd();
-		frames[filter] = umlHeader + mkumlRender.popFrame();
-	
+			if ( globalShowFreeSlots == 1 ){
+				unusedPorts().forEach(function(p){		
+					if ( p.id >= inputsE[p.tag].min && p.id <= inputsE[p.tag].max && (p.tag.indexOf("cable") == -1 || filter != "jackithru")) {
+						mkumlRender.elementBox(p, 1, selectedToggle, 1, '\r\n');
+					}
+				});
+			}
+
+			mkumlRender.genericEnd();
+			var frm = mkumlRender.popFrame();
+			frames[filter] = umlHeader + frm;
+		}
 	}
 
 	var clearAllCanvas = function(){
@@ -460,6 +464,9 @@ WebMidi.enable(function (err) {
 
 		const context2 = inputsE['jackithru'].canvas.getContext('2d');
 		context2.clearRect(0, 0,  inputsE['jackithru'].canvas.width, inputsE['jackithru'].canvas.height);
+
+		const context3 = inputsE['virtualin'].canvas.getContext('2d');
+		context3.clearRect(0, 0,  inputsE['virtualin'].canvas.width, inputsE['virtualin'].canvas.height);
 	
 	}
 
@@ -471,9 +478,34 @@ WebMidi.enable(function (err) {
 
 		frames = {};
 
-		if (inputsE['cablein'].min > -1) nomnomMakeFrame('cablein','Cable Input', renderObject.routes); 
-		if (inputsE['jackin'].min > -1 ) nomnomMakeFrame('jackin','Jack Input', renderObject.routes);
-		if (inputsE['jackin'].min > -1 && !hideIthru==true) nomnomMakeFrame('jackithru','Jack Intellithru', renderObject.intelliRoutes);
+		if (inputsE['cablein'].min > -1) {
+			$("#target-canvas-cable").removeClass("d-none");
+			nomnomMakeFrame('cablein','Cable Input', renderObject.routes); 
+		} else {
+			$("#target-canvas-cable").addClass("d-none");
+		}
+
+		if (inputsE['jackin'].min > -1 ) {
+			$("#target-canvas-jack").removeClass("d-none");
+			 nomnomMakeFrame('jackin','Jack Input', renderObject.routes);
+		} else {
+			$("#target-canvas-jack").addClass("d-none");
+		}
+
+		if (inputsE['virtualin'].min > -1 && globalShowVirtuals == 1 ) {
+			$("#target-canvas-virtual").removeClass("d-none");			
+			nomnomMakeFrame('virtualin','Virtual Input', renderObject.routes);
+		} else {
+			$("#target-canvas-virtual").addClass("d-none");
+		}
+
+		if (inputsE['jackithru'].min > -1 && !hideIthru==true) {
+			$("#target-canvas-jackithru").removeClass("d-none");			
+			nomnomMakeFrame('jackithru','Jack Intellithru', renderObject.intelliRoutes);
+		} else {
+			$("#target-canvas-jackithru").addClass("d-none");
+
+		}
 
 		if (renderObject.routes.length > 10){
 			clearAllCanvas();
@@ -589,6 +621,14 @@ WebMidi.enable(function (err) {
 	}
 
 	var sendReset = function(){
+
+		RESET_PIPES.forEach((sysex)=>{
+			var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2).map(d=>ConvertBase.hex2dec(d));
+			webmidi.pop();
+			var full = JSON.parse(JSON.stringify(sysex)).map(d=>ConvertBase.hex2dec(d));
+			sendSysex({ webmidi, full });
+		});
+
 		sendSysex(sxMaker.sxResetRoutes(), 'reset_routes');
 		sendRefresh(true);
 	
@@ -720,9 +760,6 @@ WebMidi.enable(function (err) {
 		var pipelineID = $("#pipelineID").val();
 		var pipelineSlotID = $("#pipelineSlotIdx").val();
 
-		// console.log(pipeline);
-		// console.log(pipelineSlotID);
-		
 	    var sx = sxMaker.sxReleaseBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
 
 	    sendSysex(sx, 'release_bypass_pipe');
@@ -806,11 +843,9 @@ WebMidi.enable(function (err) {
 		$("#scenelist").empty();
 
 		ajaxPost('api/findscenes', { user }, function(scenes){
-
 			scenes.message.forEach((scene)=>{
 				$("#scenelist").append($("<option />").val(scene).text(scene));
 			}); 
-			$("#scenelist").removeClass("red");
 		});
 
 	}
@@ -821,19 +856,21 @@ WebMidi.enable(function (err) {
 		user = $("#userinfo").val();
 		scene = $("#sceneName").val();
 
-		ajaxPost('api/deletescene', { user, scene }, function(obj){
-
-			sysexRecords.forEach((sysexRecord)=>{
-
-				ajaxPost('api/createsysexrecords', { user, scene, sysex:sysexRecord }, function(obj){
-
-				});
-			});
-
-		});
-
 		$("#scenelist").addClass("red");
-		loadSceneList();
+
+		ajaxPost('api/deletescene', { user, scene }, function(obj){	
+			ajaxPost('api/createsysexrecords', { user, scene, sysex: sysexRecords }, function(obj){
+
+				if (obj.status == "SUCCESS"){
+					$("#scenelist").empty();
+					obj.message.forEach((scene)=>{
+						$("#scenelist").append($("<option />").val(scene.scene).text(scene.scene));
+					}); 
+					$("#scenelist").removeClass("red");
+				}
+
+			});
+		});
 
 	}
 
@@ -844,15 +881,10 @@ WebMidi.enable(function (err) {
 
 		ajaxPost('api/findscenerecords', { user, scene }, function(records){
 			
-			var sr = records.message.map((record)=>{
-				return record.sysex;
-			}); 
-
-			sr.forEach((sysex)=>{
+			records.message[0].sysex.forEach((sysex)=>{
 
 				var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
 				webmidi.pop();
-
 				var full = JSON.parse(JSON.stringify(sysex));
 
 				sendSysex({ webmidi, full });
@@ -1168,6 +1200,13 @@ WebMidi.enable(function (err) {
 	  success: function (response) { ENUMS = response; }
 	});
 	
+	$.ajax({
+	  url: './json/reset_pipes.json',
+	  async: false,
+	  dataType: 'json',
+	  success: function (response) { RESET_PIPES = response; }
+	});
+
 	updateNomnomHeader();
 	refreshParameterUI(true,true,true,true);
 	loadSceneList();
@@ -1216,6 +1255,8 @@ WebMidi.enable(function (err) {
 	$("#hideIthru").on("change", hideIthruChange);
 
 
+	var slider_v1 = document.getElementById("myRange_v1");
+	var slider_v2 = document.getElementById("myRange_v2");
 	var slider_s = document.getElementById("myRange_s");
 	var slider_e = document.getElementById("myRange_e");
 	var slider_s2 = document.getElementById("myRange_s2");
@@ -1255,6 +1296,16 @@ WebMidi.enable(function (err) {
 	  inputsE['jackin'].max = this.value;
 	  inputsE['jackout'].max = this.value;
 	  inputsE['jackithru'].max = this.value;
+	  drawUML();
+	}
+
+	slider_v1.oninput = function() {
+	  inputsE['virtualin'].min = this.value;
+	  drawUML();
+	}
+
+	slider_v2.oninput = function() {
+	  inputsE['virtualin'].max = this.value;
 	  drawUML();
 	}
 

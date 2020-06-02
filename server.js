@@ -40,9 +40,11 @@ const httpsOptions = {
 var server = http.createServer(app).listen(port);
 var httpsserver = https.createServer(httpsOptions, app).listen(443);
 
+
+
 app.use(express.static(__dirname + '/public'));
-app.use(bodyParser.json());    
-app.use(bodyParser.urlencoded({extended: true}));    
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }));
 app.use(cors());
 
 var runtime = "";
@@ -447,12 +449,18 @@ apiRoutes.post('/createsysexrecords', function(req, res){
         scene: req.body.scene.trim(), 
         sysex: req.body.sysex
     }];
-    
+
     SysexRecord.collection.insert(sysexRecord, (err, docs)=>{
         if (err) {
             res.json({ status: 'ERROR', message: err });
         } else {
-            res.json({ status: 'SUCCESS', message: 'Record inserted' });
+            SysexRecord.find( {user:req.body.user }, function(err, docs){
+                if (err) {
+                    res.json({ status: 'ERROR', message: err });
+                } else {
+                    res.json({ status: 'SUCCESS', message: docs });
+                }
+            });
         }
     });
 
@@ -461,6 +469,7 @@ apiRoutes.post('/createsysexrecords', function(req, res){
 apiRoutes.post('/findscenerecords', function(req, res){
   
     SysexRecord.find( {user:req.body.user, scene:req.body.scene}, function(err, docs){
+
         if (err) {
             res.json({ status: 'ERROR', message: err });
         } else {
