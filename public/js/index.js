@@ -622,14 +622,15 @@ WebMidi.enable(function (err) {
 
 	var sendReset = function(){
 
+		sendSysex(sxMaker.sxResetRoutes(), 'reset_routes');		
+
 		RESET_PIPES.forEach((sysex)=>{
-			var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2).map(d=>ConvertBase.hex2dec(d));
+			var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2).map(d=>Number(ConvertBase.hex2dec(d)));
 			webmidi.pop();
-			var full = JSON.parse(JSON.stringify(sysex)).map(d=>ConvertBase.hex2dec(d));
+			var full = JSON.parse(JSON.stringify(sysex)).map(d=>Number(ConvertBase.hex2dec(d)));
 			sendSysex({ webmidi, full });
 		});
 
-		sendSysex(sxMaker.sxResetRoutes(), 'reset_routes');
 		sendRefresh(true);
 	
 	}
@@ -1201,7 +1202,7 @@ WebMidi.enable(function (err) {
 	});
 	
 	$.ajax({
-	  url: './json/reset_pipes.json',
+	  url: './json/reset_pipes2.json',
 	  async: false,
 	  dataType: 'json',
 	  success: function (response) { RESET_PIPES = response; }
