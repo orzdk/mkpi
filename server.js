@@ -75,6 +75,11 @@ if (enableSocket == true){
 
     io.on('connect', function(client){
 
+        client.on('disconnectmepls', function(){
+            console.log('disconnectmepls');
+            client.disconnect();
+        });
+
         client.on('register', function(data){
             clientObj =  { app: data.app, mkumlid: data.mkid, socketclientid: client.id };
             socketRegisteredClientsObj[client.id] = clientObj;
@@ -130,6 +135,7 @@ if (runtime == '--raspi-gpio'){
 
             var bufText = s_port_buffer.toString("hex").toUpperCase().split("F7").map((d) => d + "F7");
             io.to(forwardSerialToSocketClientID).emit('sysexdata', bufText);
+            s_port_buffer = Buffer.alloc(0);
 
         }
 
@@ -140,12 +146,6 @@ if (runtime == '--raspi-gpio'){
 /* API */
 
 var apiRoutes = express.Router(); 
-
-var initiateDump = function(sysex){
-    s_port_buffer = Buffer.alloc(0);
-    s_port_sx = Buffer.from(sxMaker.sxFullDump().full, "hex")
-    s_port.write(s_port_sx);
-}
 
 apiRoutes.post('/command', function(req, res){
 
@@ -172,7 +172,8 @@ apiRoutes.post('/requestfulldump', function(req, res){
     } else {
           
         forwardSerialToSocketClientID = req.body.socketIdentity;
-        initiateDump();
+        s_port_sx = Buffer.from(sxMaker.sxFullDump().full, "hex")
+        s_port.write(s_port_sx);
         
         res.json({ status: 'SUCCESS', message: 'full_dump rcv', s: s_port_sx });
     }
@@ -422,7 +423,6 @@ apiRoutes.post('/toggleiroute', function(req, res){
     s_port.write(sysex);
     finish(res);
 });
-
 
 /* Scenes */
 

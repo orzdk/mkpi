@@ -45,8 +45,8 @@
           "description": "",
           "parmdef": {
             "range": {
-              "min": "0x80",
-              "max": "0xFF"
+              "min": "all",
+              "max": "status"
             }
           }
         }
@@ -62,8 +62,8 @@
           "description": "",
           "parmdef": {
             "range": {
-              "min": "0x80",
-              "max": "0xFF"
+              "min": "all",
+              "max": "status"
             }
           }
         }

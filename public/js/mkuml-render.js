@@ -44,6 +44,8 @@
 				if (pipes[p+1]) nextPipeParms = (p+1) + ' ' + PIPEDEF[pipes[p+1].pipeid].title;				
 
 				var pipep2 = pipes[p].p2;
+				var pipep3 = pipes[p].p3;
+
 				var pipeCommand = cableJackE[pipes[p].p1];
 				
                 var pipeParms = pipes[p].p1 + ',' + pipes[p].p2 + ',' + pipes[p].p3 + ',' + pipes[p].p4;
@@ -66,7 +68,7 @@
 
 				if (pipeid == 6 && !pipes[p].bypass){
 					if (globalLoopbackDisplay == 1 || globalLoopbackDisplay == 3) {
-						mkumlRender.pipeLoopback1(pipeTitle,  pipeCommand, pipep2);
+						mkumlRender.pipeLoopback1(pipeTitle, pipeCommand, pipep3);
 					}
 					else if (globalLoopbackDisplay == 2 || globalLoopbackDisplay == 3){
 					    ext = '[<' + pipeCommand + 'in>' +  r.src.srcuid + '] -> [<' + pipeCommand + 'in>' + pipeCommand + pipep2 + 'in]\r\n';

@@ -54,6 +54,9 @@ var render = false;
 var activeRuntime = "none";
 var webmidiConnected = false;
 
+var socket;
+var socketIdentity = {};
+
 $(document).ready(function(){
 	var newUser = "MK" + parseInt(Math.random() * 100000000000);
 	cookieUser = $.cookie('mkusername');
@@ -390,8 +393,6 @@ WebMidi.enable(function (err) {
 					if (r.pipeSlot.slotid == $("#pipelineID").val()){
 						pipelinePositions[r.pipeSlot.pipeidx] = (r.pipeSlot.pipeidx+1) + ": " + PIPEDEF[r.pipeSlot.pipeid].title;
 					} 
-					
-					//refreshPipelineSlotPositions();
 
 				} else if (r.subfunc == 1 && r.command == 5){
 
@@ -535,8 +536,9 @@ WebMidi.enable(function (err) {
 			$("#sentsysex").css('color','red');
 		}
 
-		if (activeRuntime == "webmidi"){
-	        var outport = $("#midiOutputSelect").val();
+		var outport = $("#midiOutputSelect").val();
+
+		if (activeRuntime == "webmidi" && outport != null){    
 			output = WebMidi.getOutputByName(outport);
 			output.sendSysex(0x77, sysex.webmidi);	
 		} 
@@ -585,7 +587,6 @@ WebMidi.enable(function (err) {
 	var serverCommand = function(sysex, cmdid){
 		
 		ajaxPost('api/command', { socketIdentity, sysex, cmdid }, function(reply){
-
 			$("#sentsysex").val($("#sentsysex").val() + " " + reply.message + ": " + convertToReadableSysex(reply.s.data) + " - Please wait");
 		});
 	
@@ -620,17 +621,10 @@ WebMidi.enable(function (err) {
 
 	}
 
+
 	var sendReset = function(){
 
 		sendSysex(sxMaker.sxResetRoutes(), 'reset_routes');		
-
-		RESET_PIPES.forEach((sysex)=>{
-			var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2).map(d=>Number(ConvertBase.hex2dec(d)));
-			webmidi.pop();
-			var full = JSON.parse(JSON.stringify(sysex)).map(d=>Number(ConvertBase.hex2dec(d)));
-			sendSysex({ webmidi, full });
-		});
-
 		sendRefresh(true);
 	
 	}
@@ -742,6 +736,21 @@ WebMidi.enable(function (err) {
 	    sendSysex(sx, 'clear_pipe');
 	    sendRefresh();
 
+	}
+
+	var clearPipes = function(callback){
+
+		var pipelineID = $("#pipelineID").val();
+		var pipelineSlotID = $("#pipelineSlotIdx").val();
+
+		for (var pipline=1;pipline<9;pipline++){
+			for (var pipslot=0;pipslot<8;pipslot++){
+				var sx = sxMaker.sxClearPipelineSlot(pipline).pipelineSlotID(0);
+				sendSysex(sx, 'clear_pipe');
+			}
+		}
+
+		callback();
 	}
 
 	var bypassPipe = function(){
@@ -880,29 +889,23 @@ WebMidi.enable(function (err) {
 		user = $("#userinfo").val();
 		scene = $("#scenelist").val();
 
-		ajaxPost('api/findscenerecords', { user, scene }, function(records){
-			
-			records.message[0].sysex.forEach((sysex)=>{
-
-				var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
-				webmidi.pop();
-				var full = JSON.parse(JSON.stringify(sysex));
-
-				sendSysex({ webmidi, full });
+		clearPipes(function(){
+			ajaxPost('api/findscenerecords', { user, scene }, function(records){
+				records.message[0].sysex.forEach((sysex)=>{
+					var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
+					webmidi.pop();
+					var full = JSON.parse(JSON.stringify(sysex));
+					sendSysex({ webmidi, full });
+				});
+				sendRefresh(true);
 			});
-
-			sendRefresh(true);
-
 		});
-
+		
 	}
 
 	/* Socket Client Stuff */
 
-	var socket = io();
-	var socketIdentity = {};
-
-	socket.on('connect', function(data){
+	var socketConnect = function(data){
 		
 		console.log("socket/connect");
 
@@ -913,10 +916,11 @@ WebMidi.enable(function (err) {
 	    socket.on('registered', function(data){	
 	    	console.log("socket/registered", JSON.stringify(data)); 
 	    	socketIdentity = data; 
-
+	    	sendRefresh(true);
 	   	});
 
 	    socket.on('refreshpush', function(){ 
+	    	console.log("socket/refreshpush"); 
 	    	sendRefresh();
 	    });
 
@@ -971,8 +975,8 @@ WebMidi.enable(function (err) {
 		    sendRefresh();
 		});
 
-	});
 
+	}
 
 	/* UI Handling */
 	var toggleMenu = function(item){
@@ -997,7 +1001,7 @@ WebMidi.enable(function (err) {
 
 	}
 
-	var checkGPIOAPIStatus = function(callback){
+	var checkSerialStatus = function(callback){
 
 		ajaxPost('api/sysinfo', {}, function(reply){
 			callback(reply);            
@@ -1013,6 +1017,8 @@ WebMidi.enable(function (err) {
 		$("#sentsysex").css('color','red');
 
 			if (requestedRuntime == "webmidi"){
+
+				if(socket) socket.emit('disconnectmepls');
 
 				if (webmidiConnected == true){
 
@@ -1063,7 +1069,7 @@ WebMidi.enable(function (err) {
 				$("#midiInputSelect").addClass("d-disabled");
 				$("#midiOutputSelect").addClass("d-disabled");
 
-				checkGPIOAPIStatus(function(reply){
+				checkSerialStatus(function(reply){
 
 					if (reply.status == "SUCCESS"){
 
@@ -1073,13 +1079,16 @@ WebMidi.enable(function (err) {
 		                cssHide("webmidi_connected");
 		                cssHide("webmidi_unavailable");
 
-
 		                $("#apiserver_connected").html("Using API Server (" + reply.message + ")");
 
 		                $("#sentsysex").val("");
 						$("#sentsysex").css('color','red');
 
 						activeRuntime = "raspigpio";
+
+						socket = io();
+						socketIdentity = {};						
+						socket.on('connect', socketConnect);
 
 					} else {
 
@@ -1092,8 +1101,6 @@ WebMidi.enable(function (err) {
 		                activeRuntime = "none";
 
 					}
-
-					sendRefresh(true);
 
 				});
 
@@ -1163,10 +1170,10 @@ WebMidi.enable(function (err) {
 
 	var inputChanged = function(e){
 
-		if (activeRuntime == "webmidi"){
-			var midiInputSelect = $("#midiInputSelect").val();
-			var input = WebMidi.getInputByName(midiInputSelect);
+		var inport = $("#midiInputSelect").val();
 
+		if (activeRuntime == "webmidi"  && inport != null){
+			var input = WebMidi.getInputByName(inport);
 			input.addListener("sysex", "all", onSysex);		
 		}
 	
@@ -1201,13 +1208,6 @@ WebMidi.enable(function (err) {
 	  success: function (response) { ENUMS = response; }
 	});
 	
-	$.ajax({
-	  url: './json/reset_pipes2.json',
-	  async: false,
-	  dataType: 'json',
-	  success: function (response) { RESET_PIPES = response; }
-	});
-
 	updateNomnomHeader();
 	refreshParameterUI(true,true,true,true);
 	loadSceneList();

@@ -1,4 +1,5 @@
 {
+	
 	"0-7F": {
 		"1":"1",
 		"2":"2",
@@ -173,50 +174,25 @@
 		"8":"8"
 	},
 
-	"0x80-0xFF": {
-	    "8x" : "Note off",
-	    "9x"  : "Note on",
-	    "10x"  : "Poly Aftertouch",
-	    "11x"  : "Control Change (CC)",
-	    "12x"  : "Program Change",
-	    "13x"  : "Channel Aftertouch",
-	    "14x"  : "Pitch Wheel",
-	    "x1"  : "Common, undefined",
-	    "x2"  : "Common, song pointer",
-	    "x3"  : "Common, song select",
-	    "x4"  : "Common, undefined",
-	    "x5"  : "Common, undefined",
-	    "x6"  : "Common, tune request",
-	    "x7"  : "EOX", 
-	    "x8"  : "Realtime, clock",
-	    "x9"  : "Realtime, undefined",
-	    "x10"  : "Realtime, start",
-	    "x11"  : "Realtime, stop",
-	    "x12"  : "Realtime, continue",
-	    "x13"  : "Realtime, undefined", 
-	    "x14"  : "Realtime, active sensing",
-	    "x15"  : "Realtime, sysreset"
-    },
-
-	"0x80-0xFF-3": {
-	    "128" : "Note off",
-	    "144"  : "Note on",
-	    "160"  : "Poly Aftertouch",
-	    "176"  : "Control Change (CC)",
-	    "192"  : "Program Change",
-	    "208"  : "Channel Aftertouch",
-	    "224"  : "Pitch Wheel"
-    },
-
-	"0x80-0xFF-4": {
-	    "128" : "Note off",
-	    "144"  : "Note on",
-	    "160"  : "Poly Aftertouch",
-	    "176"  : "Control Change (CC)",
-	    "192"  : "Program Change",
-	    "208"  : "Channel Aftertouch",
-	    "224"  : "Pitch Wheel"
-    },
+	"all-status": {
+		"8":"Note Off",
+		"9":"Note On",
+		"10":"Poly Aftertouch",
+		"11":"Control Change",
+		"12":"Program Change",
+		"13":"Channel Aftertouch",
+		"14":"Pitch Bend",
+		"17":"Time Code",
+		"18":"Song Position",
+		"19":"Song Select",
+		"22":"Tune Request",
+		"24":"Clock",
+		"26":"Start",
+		"27":"Continue",
+		"28":"Stop",
+		"30":"Active Sensing",
+		"31":"Reset"
+	},
 
     "bit-mask": {
       "1": "Channel Voice",
@@ -229,7 +205,5 @@
       "0": "Include",
       "1": "Exclude"
     }
-
-
 
 }

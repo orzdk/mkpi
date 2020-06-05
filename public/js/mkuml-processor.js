@@ -2,7 +2,7 @@
 
 
 	var process16 = function(msgdata, len){
-		return { process: 16 };
+		return { process: 16, code: msgdata[2] };
 	
 	}
 
