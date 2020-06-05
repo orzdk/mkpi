@@ -1213,6 +1213,7 @@ WebMidi.enable(function (err) {
 	loadSceneList();
 	checkRuntimeAvailability();
 	inputChanged();
+	toggleSelectionsChanged();
 
 	$("#toggleBit").on("click", toggleBit);
 	$("#toggleBitIThru").on("click", toggleBitIThru);
