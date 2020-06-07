@@ -47,7 +47,6 @@
 				var pipep3 = pipes[p].p3;
 
 				var pipeCommand = cableJackE[pipes[p].p1];
-				
                 var pipeParms = pipes[p].p1 + ',' + pipes[p].p2 + ',' + pipes[p].p3 + ',' + pipes[p].p4;
 
                 var pipeParm1Text;

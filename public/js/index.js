@@ -242,7 +242,10 @@ WebMidi.enable(function (err) {
 
 		} else {
 
-			$(pselect).addClass("d-none"); $(ptext).addClass("d-none"); $(plabel).addClass("d-none");
+			$(pselect).empty(); 
+			$(pselect).addClass("d-none"); 
+			$(ptext).addClass("d-none"); 
+			$(plabel).addClass("d-none");
 
 			if (selectedPipeDefinition[pfield])
 			if (Object.keys(selectedPipeDefinition[pfield]).length > 0){
