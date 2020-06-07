@@ -246,6 +246,7 @@ WebMidi.enable(function (err) {
 			$(pselect).addClass("d-none"); 
 			$(ptext).addClass("d-none"); 
 			$(plabel).addClass("d-none");
+			$(pcb).addClass("d-none");
 
 			if (selectedPipeDefinition[pfield])
 			if (Object.keys(selectedPipeDefinition[pfield]).length > 0){
@@ -970,6 +971,7 @@ WebMidi.enable(function (err) {
 		scene = $("#scenelist").val();
 		
 		clearPipes(function(){
+
 			ajaxPost('api/findscenerecords', { user, scene }, function(records){
 				records.message[0].sysex.forEach((sysex)=>{
 					var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
