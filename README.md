@@ -2,6 +2,11 @@
 
 THIS IS A BETA. BACKUP ANY IMPORTANT ROUTING TABLES !
 
+Demo available @ https://52.16.53.174/
+
+To run demo you need a USBMidiKlik4x4. Only runs in Chrome. Allow https from cert orzdkdk, and allow MIDI communications. 
+Raspberry PI configuration guide pending. 
+
 # Now with raspi gpio API !
 
 ## Intro
