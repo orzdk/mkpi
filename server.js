@@ -56,8 +56,11 @@ process.argv.forEach(function (val, index, array) {
 
 });
 
-/* Mongo Connect */
+var socketRegisteredClientsObj = {};
+var forwardSerialToSocketClientID = "";
 
+
+/* Mongo Connect */
 if (mongoConnect == true && config.database != "") {
     mongoose.connect(config.database,{useNewUrlParser: true, useUnifiedTopology: true });
     mongoose.Promise = global.Promise;
@@ -65,10 +68,6 @@ if (mongoConnect == true && config.database != "") {
 }
 
 /* Socket Stuff */
-
-var socketRegisteredClientsObj = {};
-var forwardSerialToSocketClientID = "";
-
 if (enableSocket == true){
 
     var io = require("socket.io").listen(httpsserver);
@@ -107,7 +106,6 @@ if (enableSocket == true){
 }
 
 /* Raspi GPIO UART Runtime */
-
 if (runtime == '--raspi-gpio'){
 
     var serialport = require("serialport");
@@ -149,8 +147,6 @@ var apiRoutes = express.Router();
 
 apiRoutes.post('/command', function(req, res){
 
-    console.log("api/command" + req.body.cmdid);
-
     if (s_port){
 
         var sysex = Buffer.from(req.body.sysex, "hex");
@@ -164,8 +160,6 @@ apiRoutes.post('/command', function(req, res){
 });
 
 apiRoutes.post('/requestfulldump', function(req, res){
-
-    console.log("api/requestfulldump");
 
     if ( runtime != '--raspi-gpio' ){
         res.json({ status: 'FAILURE', message: 'Raspi-GPIO Runtime Not Enabled' });
@@ -187,20 +181,28 @@ var finish = function(res){
     res.sendStatus(200);
 }
 
-apiRoutes.get('/resetrouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetRoute().full, "hex")
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/resetirouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetIThru().full, "hex")
-    s_port.write(sysex);
-    finish(res);
-});
+/* Global Functions */
 
 apiRoutes.get('/resethardware', function(req, res){
     var sysex = Buffer.from(sxMaker.sxHwReset().full, "hex")
+    s_port.write(sysex);
+    finish(res);    
+});
+
+apiRoutes.get('/acktoggle', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxAckToggle().full, "hex")
+    s_port.write(sysex);
+    finish(res);    
+});
+
+apiRoutes.get('/factorysettings', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxFactorySettings().full, "hex")
+    s_port.write(sysex);
+    finish(res);    
+});
+
+apiRoutes.get('/saveflash', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxSaveFlash().full, "hex")
     s_port.write(sysex);
     finish(res);    
 });
@@ -210,6 +212,114 @@ apiRoutes.get('/bootserial', function(req, res){
     s_port.write(sysex); 
     finish(res);   
 });
+
+apiRoutes.get('/fulldump', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxFullDump().full, "hex")
+    s_port.write(sysex); 
+    finish(res);   
+});
+
+apiRoutes.get('/resetall', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetAll().full, "hex")
+    s_port.write(sysex); 
+    finish(res);   
+});
+
+
+/* USB Device Settings */
+
+apiRoutes.get('/setprodstring/:prodstring', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxSetProdString(req.params.prodstring));
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/setprodstring/:vendID/:prodID', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxSetVendProdID().vendID(vendID).prodID(prodID));
+    s_port.write(sysex);
+    finish(res);
+});
+
+/* MIDI Clock Settings */
+
+apiRoutes.get('/clockdisable/:clockid', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxClock(clockid).disable());
+    s_port.write(sysex);
+    finish(res);
+});
+
+
+apiRoutes.get('/clockenable/:clockid', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxClock(clockid).enable());
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/mtcdisable/:clockid', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxClock(clockid).disableMTC());
+    s_port.write(sysex);
+    finish(res);
+});
+
+
+apiRoutes.get('/mtcenable/:clockid', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxClock(clockid).enableMTC());
+    s_port.write(sysex);
+    finish(res);
+});
+
+
+apiRoutes.get('/setclockbpm/:clockid/:bpm', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxClock(clockid).setBPM(bpm));
+    s_port.write(sysex);
+    finish(res);
+});
+
+/* IntelliThru */
+
+apiRoutes.get('/resetroutingithru', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetIThru().full, "hex")
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/disableallithru', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxDisableAllIThru().full, "hex")
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/resetroutingithru/:usbidle', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxSetUSBIdle(usbidle).full, "hex")
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/toggleiroute/:srcID/:tgtType/:tgtIDs', function(req, res){
+    var tgtids = JSON.parse(decodeURIComponent(req.params.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(req.params.srcID).tgtType(req.params.tgtType).tgtIDs(tgtids).full);
+    s_port.write(sysex);
+    finish(res);
+});
+
+
+/* Routes */
+
+apiRoutes.get('/resetrouting', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxResetRoutes().full, "hex")
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/route/:srcType/:srcID/:tgtType/:tgtIDs', function(req, res){
+    var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
+    var sysex = Buffer.from(sxMaker.sxRoute().srcType(req.params.srcType).srcID(req.params.srcID).tgtType(req.params.tgtType).tgtIDs(tgtids).full);
+    s_port.write(sysex);
+    finish(res);
+});
+
+
+/* Bus Mode */
 
 apiRoutes.get('/enablebus', function(req, res){
     var sysex = Buffer.from(sxMaker.sxEnableBus().full, "hex")
@@ -223,61 +333,6 @@ apiRoutes.get('/disablebus', function(req, res){
     finish(res);   
 });
 
-apiRoutes.get('/attachpipeline/:pipelineID/:srctype/:srcid', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rp.pipelineID).srcType(rp.srctype).srcID(rp.srcid).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/detachpipeline/:srctype/:srcid', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rp.srctype).srcID(rp.srcid).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/addpipe/:pipelineID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rp.pipelineID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);  
-    s_port.write(sysex); 
-    finish(res);
-});
-
-apiRoutes.get('/insertpipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/replacepipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).pipeID(rp.pipeID).parameters(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/clearpipe/:pipelineID/:pipelineSlotID', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/bypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(req.params.pipelineID).pipelineSlotID(req.params.pipelineSlotID).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/releasebypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
-    var rp = req.params;
-    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rp.pipelineID).pipelineSlotID(rp.pipelineSlotID).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
 apiRoutes.get('/setdeviceid/:busID', function(req, res){
     var rp = req.params;
     var sysex = Buffer.from(xMaker.setBusID(rp.busID).full);
@@ -285,144 +340,65 @@ apiRoutes.get('/setdeviceid/:busID', function(req, res){
     finish(res);
 });
 
-apiRoutes.get('/toggleroute/:srcType/:srcID/:tgtType/:tgtIDs', function(req, res){
+
+/* Transformations - Pipelines */
+
+apiRoutes.get('/attachpipeline/:pipelineID/:portType/:portID', function(req, res){ 
+    var sysex = Buffer.from(sxMaker.sxPipeline(req.params.pipelineID).attachPort().portType(req.params.portType).portID(req.params.portID));
+    s_port.write(sysex);
+    finish(res);
+});
+
+apiRoutes.get('/detachpipeline/:portType/:portID', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxPipeline().clearPort().portType(req.params.portType).portID(req.params.portID));
+    s_port.write(sysex);
+    finish(res);
+});
+
+
+/* Transformations - Pipes */
+
+apiRoutes.get('/addpipe/:pipelineID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
     var rp = req.params;
-    var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
-    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rp.srcType).srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtids).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.get('/toggleiroute/:srcID/:tgtType/:tgtIDs', function(req, res){
-    var rp = req.params;
-    var tgtids = JSON.parse(decodeURIComponent(rp.tgtIDs));
-    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rp.srcID).tgtType(rp.tgtType).tgtIDs(rp.tgtIDs).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-/* MIDI Rest API - Body Post */
-
-apiRoutes.post('/sysinfo', function(req, res){
-    var message = "on " + s_port_name; 
-    if (!s_port) message = "[error 1: no serial]";
-    
-    res.json({ status: 'SUCCESS', message });
-    
-});
-
-apiRoutes.post('/resetrouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetRoute().full, "hex")
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.post('/resetirouting', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxResetIThru().full, "hex")
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.post('/resethardware', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxHwReset().full, "hex")
+    var sysex = Buffer.from(sxMaker.sxAddPipe(rp.pipelineID).pipeID(rp.pipeID).parms(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);  
     s_port.write(sysex); 
-    finish(res);   
+    finish(res);
 });
 
-apiRoutes.post('/bootserial', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxBootSerial().full, "hex")
-    s_port.write(sysex);  
-    finish(res);  
-});
-
-apiRoutes.post('/enablebus', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxEnableBus().full, "hex")
-    s_port.write(sysex);  
-    finish(res);  
-});
-
-apiRoutes.post('/disablebus', function(req, res){
-    var sysex = Buffer.from(sxMaker.sxDisableBus().full, "hex")
-    s_port.write(sysex);  
-    finish(res);  
-});
-
-apiRoutes.post('/attachpipeline', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxAttachPipeline(rb.pipelineID).srcType(rb.srctype).srcID(rb.srcid).full);
+apiRoutes.get('/insertpipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxInsertPipe(rp.pipelineID).slotID(rp.slotID).pipeID(rp.pipeID).parms(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);
     s_port.write(sysex);
     finish(res);
 });
 
-apiRoutes.post('/detachpipeline', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxDetachPipeline().srcType(rb.srctype).srcID(rb.srcid).full);
+apiRoutes.get('/replacepipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxReplacePipe(rp.pipelineID).slotID(rp.slotID).pipeID(rp.pipeID).parms(rp.pp1, rp.pp2, rp.pp3, rp.pp4).full);
     s_port.write(sysex);
     finish(res);
 });
 
-apiRoutes.post('/addpipe', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxAddPipeToPipeline(rb.pipelineID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.p3, rb.pp4).full);  
-    s_port.write(sysex);
-    finish(res); 
-});
-
-apiRoutes.post('/insertpipe', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxInsertPipeToPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4).full);
+apiRoutes.get('/clearpipe/:pipelineID/:pipelineSlotID', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxClearPipe(rp.pipelineID).slotID(rp.slotID).full);
     s_port.write(sysex);
     finish(res);
 });
 
-apiRoutes.post('/replacepipe', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxReplacePipeInPipeline(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).pipeID(rb.pipeID).parameters(rb.pp1, rb.pp2, rb.pp3, rb.pp4).full);
+apiRoutes.get('/bypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
+    var sysex = Buffer.from(sxMaker.sxBypassPipe(req.params.pipelineID).slotID(req.params.slotID).full);
     s_port.write(sysex);
     finish(res);
 });
 
-apiRoutes.post('/clearpipe', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxClearPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).full);
+apiRoutes.get('/releasebypasspipe/:pipelineID/:pipelineSlotID', function(req, res){
+    var rp = req.params;
+    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipe(rp.pipelineID).slotID(rp.slotID).full);
     s_port.write(sysex);
     finish(res);
 });
 
-apiRoutes.post('/bypasspipe', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.post('/releasebypasspipe', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxReleaseBypassPipelineSlot(rb.pipelineID).pipelineSlotID(rb.pipelineSlotID).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.post('/setdeviceid', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.setBusID(rb.busID));
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.post('/toggleroute', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxRoute().srcType(rb.srcType).srcID(rb.rcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs).full);
-    s_port.write(sysex);
-    finish(res);
-});
-
-apiRoutes.post('/toggleiroute', function(req, res){
-    var rb = req.body;
-    var sysex = Buffer.from(sxMaker.sxIntelliRoute().srcID(rb.srcID).tgtType(rb.tgtType).tgtIDs(rb.tgtIDs).full);
-    s_port.write(sysex);
-    finish(res);
-});
 
 /* Scenes */
 

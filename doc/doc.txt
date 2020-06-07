@@ -3,79 +3,122 @@
 GET-API:
 ---------
 
-/api/resetrouting
-/api/resetirouting
-/api/resethardware
-/api/bootserial
+Operation (GET)
 
-/api/enablebus
-/api/disablebus
-/api/setdeviceid/:busID
+/* Global Functions */
 
-/api/attachpipeline/:pipelineID/:srctype/:srcid
-/api/detachpipeline/:srctype/:srcid
+/resethardware
+/idrequest
+/acktoggle
+/factorysettings
+/saveflash
+/bootserial
+/fulldump
+/resetall
 
-/api/addpipe/:pipelineID/:pipeID/:pp1/:pp2/:pp3/:pp4
-/api/insertpipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4
-/api/replacepipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4
-/api/clearpipe/:pipelineID/:pipelineSlotID
-/api/bypasspipe/:pipelineID/:pipelineSlotID
+/* USB Device Settings */
 
-/api/releasebypasspipe/:pipelineID/:pipelineSlotID
-/api/toggleroute/:srcType/:srcID/:tgtType/:tgtIDs
-/api/toggleiroute/:srcID/:tgtType/:tgtIDs
+/setprodstring/:prodstring
+/setprodstring/:vendID/:prodID
 
-POST-API:
----------
+/* MIDI Clock Settings *
 
-/api/resetrouting
-/api/resetirouting
-/api/resethardware
-/api/bootserial
+/clockdisable/:clockid
+/clockenable/:clockid
+/mtcdisable/:clockid
+/mtcenable/:clockid
+/setclockbpm/:clockid/:bpm
 
-/api/enablebus
-/api/disablebus
-/api/setdeviceid
+/* IntelliThru */
 
-/api/attachpipeline
-/api/detachpipeline
+/resetroutingithru
+/disableallithru
+/resetroutingithru/:usbidle
+/toggleiroute/:srcID/:tgtType/:tgtIDs
 
-/api/addpipe
-/api/insertpipe
-/api/replacepipe
 
-/api/clearpipe
-/api/bypasspipe
-/api/releasebypasspipe
+/* Routes */
+/resetrouting
+/route/:srcType/:srcID/:tgtType/:tgtIDs
 
-/api/toggleroute
-/api/toggleiroute
 
-sysexmaker.js:
+/* Bus Mode */
+/enablebus
+/disablebus
+/setdeviceid/:busID
+
+/* Transformations - Pipelines */
+
+/attachpipeline/:pipelineID/:portType/:portID
+/detachpipeline/:portType/:portID
+
+/* Transformations - Pipes */
+
+/addpipe/:pipelineID/:pipeID/:pp1/:pp2/:pp3/:pp4
+/insertpipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4
+/replacepipe/:pipelineID/:pipelineSlotID/:pipeID/:pp1/:pp2/:pp3/:pp4
+/clearpipe/:pipelineID/:pipelineSlotID
+/bypasspipe/:pipelineID/:pipelineSlotID
+/releasebypasspipe/:pipelineID/:pipelineSlotID
+
+
+/* Scenes */ (POST)
+
+/deletescene {user, scene}
+/findscenerecords {user, scene}
+/findscenes {user}
+/createsysexrecords {user, scene, [sysex]}
+
+
+Module (sysexmaker.js)
 --------------
 
-sxMaker.sxFullDump();
-sxMaker.sxReset();
-sxMaker.sxResetIThru();
-sxMaker.sxHwReset();
-sxMaker.sxBootSerial();
+/* Global Functions */
+sxMaker.sxHwReset() 
+sxMaker.sxIDRequest() 
+sxMaker.sxAckToggle()
+sxMaker.sxFactorySettings() 
+sxMaker.sxSaveFlash()
+sxMaker.sxBootSerial()
+sxMaker.sxFullDump()
+sxMaker.sxResetAll()
 
-sxMaker.sxEnableBus();
-sxMaker.sxDisableBus();
-sxMaker.setBusID(busID);
+/* USB Device Settings */
+sxMaker.sxSetProdString(prodstring)
+sxMaker.sxSetVendProdID().vendID(vendID).prodID(prodID)
 
-sxMaker.sxAttachPipeline(pipelineID).srcType(srctype).srcID(srcid);
-sxMaker.sxDetachPipeline().srcType(srctype).srcID(srcid);
+/* MIDI Clock Settings */
+sxMaker.sxClock(clockid).disable()
+sxMaker.sxClock(clockid).enable()
+sxMaker.sxClock(clockid).disableMTC()
+sxMaker.sxClock(clockid).enableMTC()
+sxMaker.sxClock(clockid).setBPM(bpm)
 
-sxMaker.sxAddPipeToPipeline(pipelineID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
-sxMaker.sxInsertPipeToPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
-sxMaker.sxReplacePipeInPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
+/* IntelliThru */
+sxMaker.sxResetIThru()
+sxMaker.sxDisableAllIThru() 
+sxMaker.sxSetUSBIdle()
+sxMaker.sxIntelliRoute().srcID(srcID).tgtType(tgtType).tgtIDs([tgtIDs])
 
-sxMaker.sxClearPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
-sxMaker.sxBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
-sxMaker.sxReleaseBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+/* Routes */
+sxMaker.sxResetRoutes()
+sxMaker.sxRoute().srcType(srcType).srcID(srcID).tgtType(tgtType).tgtIDs([tgtIDs])
 
-sxMaker.sxRoute().srcType(srcType).srcID(srcID).tgtType(tgtType).tgtIDs(tgtIDs);
-sxMaker.sxIntelliRoute().srcID(srcID).tgtType(tgtType).tgtIDs(tgtIDs);
+/* Bus Mode */
+sxMaker.sxEnableBus()
+sxMaker.sxDisableBus()
+sxMaker.sxSetBusID(busID)
 
-*/
+/* Transformations - Pipelines */
+sxMaker.sxPipeline().clearPort(portID)
+sxMaker.sxPipeline(pipeLineID).copyTo(pipeLineDestID)
+sxMaker.sxPipeline(pipeLineID).clearPort().portType(portType).portID(portID)
+sxMaker.sxPipeline(pipeLineID).attachPort().portType(portType).portID(portID)
+
+/* Transformations - Pipes *
+sxMaker.sxAddPipe(pipelineID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
+sxMaker.sxInsertPipe(pipelineID).slotID(slotID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
+sxMaker.sxReplacePipe(pipelineID).slotID(slotID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
+sxMaker.sxClearPipe(pipelineID).slotID(slotID);
+sxMaker.sxBypassPipe(pipelineID).slotID(slotID);
+sxMaker.sxReleaseBypassPipe(pipelineID).slotID(slotID);

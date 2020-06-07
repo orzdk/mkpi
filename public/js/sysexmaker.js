@@ -2,23 +2,47 @@
 
 
 	var sysexLib = {
+
 		config_request:    [ 0xF0, 0x77, 0x77, 0x78, 0x05, 0x7F, 0x0, 0x0, 0x0 ],
+
+		hw_reset:          [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x0A ],
 		id_request:        [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x01 ],
-		hw_reset:          [ 0xF0, 0x77, 0x77, 0x78, 0x0A ],
-		boot_serial:       [ 0xF0, 0x77, 0x77, 0x78, 0x08 ],
+		ack_toggle:        [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x02 ],
+		factory_settings:  [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x04 ],
+		reset_all: 		   [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x05 ],	
+		save_flash: 	   [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x06 ],	
+		boot_serial:       [ 0xF0, 0x77, 0x77, 0x78, 0x06, 0x08 ],
+
+		usb_prod_string:   [ 0xF0, 0x77, 0x77, 0x78, 0x0B, 0x00 ],
+		vend_prod_id:      [ 0xF0, 0x77, 0x77, 0x78, 0x0B, 0x01 ],
+
+		clock_toggle:      [ 0xF0, 0x77, 0x77, 0x78, 0x0C, 0x00 ],
+		clock_bpm:         [ 0xF0, 0x77, 0x77, 0x78, 0x0C, 0x01 ],
+		mtc_toggle:        [ 0xF0, 0x77, 0x77, 0x78, 0x0C, 0x02 ],
+
+		ithru_reset: 	   [ 0xF0, 0x77, 0x77, 0x78, 0x0E, 0x00 ],
+		ithru_disable_all: [ 0xF0, 0x77, 0x77, 0x78, 0x0E, 0x01 ],
+		ithru_set_usbidle: [ 0xF0, 0x77, 0x77, 0x78, 0x0E, 0x02 ],
+		ithru_route:       [ 0xF0, 0x77, 0x77, 0x78, 0x0E, 0x03 ], 	
+
 		route_reset:       [ 0xF0, 0x77, 0x77, 0x78, 0x0F, 0x00 ],
-		route_reset_ithru: [ 0xF0, 0x77, 0x77, 0x78, 0x0E, 0x00 ],
 		route_set:         [ 0xF0, 0x77, 0x77, 0x78, 0x0F, 0x01 ],
-		route_set_ithru:   [ 0xF0, 0x77, 0x77, 0x78, 0x0E, 0x03 ],
-		slot_attach:       [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x00, 0x02 ],
+
+		enable_bus:        [ 0xF0, 0x77, 0x77, 0x78, 0x10, 0x00, 0x01 ],
+		disable_bus:       [ 0xF0, 0x77, 0x77, 0x78, 0x10, 0x00, 0x00 ],
+		set_busid:         [ 0xF0, 0x77, 0x77, 0x78, 0x10, 0x01 ],
+
+		pipeline_copy:     [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x00, 0x00 ],
+		pipeline_clear:    [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x00, 0x01 ],
+		pipeline_attach:   [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x00, 0x02 ],
+
 		add_pipe:          [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x00 ],
 		insert_pipe:       [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x01 ],
 		replace_pipe:      [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x02 ],
 		clear_pipe:        [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x03 ],
-		bypass_pipe:       [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x05 ],
-		enable_bus:        [ 0xF0, 0x77, 0x77, 0x78, 0x10, 0x00, 0x00 ],
-		disable_bus:       [ 0xF0, 0x77, 0x77, 0x78, 0x10, 0x00, 0x00 ],
-		set_busid:         [ 0xF0, 0x77, 0x77, 0x78, 0x10, 0x01 ]
+		clear_first_pipe:  [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x04 ],
+		bypass_pipe:       [ 0xF0, 0x77, 0x77, 0x78, 0x11, 0x01, 0x05 ]
+
 	};
 
 	class sxMaker {
@@ -32,18 +56,110 @@
 			return { webmidi, full }
 		}
 
-		/*Utilities*/
+		/* Global Functions */
 
-		sxFullDump() 	{ return this.formatter(sysexLib.config_request) 	};
-		sxResetRoutes() { return this.formatter(sysexLib.route_reset) 		};
-		sxResetIThru() 	{ return this.formatter(sysexLib.route_reset_ithru) };
-		sxHwReset() 	{ return this.formatter(sysexLib.hw_reset) 			};
-		sxBootSerial() 	{ return this.formatter(sysexLib.config_request) 	};
-		sxEnableBus() 	{ return this.formatter(sysexLib.enable_bus) 		};
-		sxDisableBus() 	{ return this.formatter(sysexLib.disable_bus) 		};
+		sxHwReset() 		{ return this.formatter(sysexLib.hw_reset) };
+		sxIDRequest() 		{ return this.formatter(sysexLib.id_request) };
+		sxAckToggle() 		{ return this.formatter(sysexLib.ack_toggle) };
+		sxFactorySettings() { return this.formatter(sysexLib.factory_settings) };	
+		sxSaveFlash() 		{ return this.formatter(sysexLib.save_flash) };
+		sxBootSerial() 		{ return this.formatter(sysexLib.config_request) };
+		sxFullDump() 		{ return this.formatter(sysexLib.config_request) };
+		sxResetAll() 		{ return this.formatter(sysexLib.reset_all) };
+
+		/* USB Device Settings */
+
+	    sxSetProdString(prodstring) {
+    		return this.formatter(sysexLib.usb_prod_string
+    		.concat([
+				~~prodstring
+    		]));
+	    }
+
+	    sxSetVendProdID() {
+	        return {
+	            vendID : (vendID) => {
+	                return {
+	                    prodID : (prodID) => {
+				    		return this.formatter(sysexLib.vend_prod_id
+				    		.concat([
+								~~vendID, ~~prodID
+				    		]));
+	                    }
+	                };
+	            }
+	        };
+	    }
+
+		/* MIDI Clock Settings */
+
+	    sxClock(clockid) {
+
+            return {
+                disable : () => {
+		    		return this.formatter(sysexLib.clock_toggle
+		    		.concat([
+						~~clockid, 0
+		    		]));
+                }, 
+                enable : () => {
+		    		return this.formatter(sysexLib.clock_toggle
+		    		.concat([
+						~~clockid, 1
+		    		]));
+                },
+                setBPM : (bpm) => {
+		    		return this.formatter(sysexLib.clock_bpm
+		    		.concat([
+						~~clockid,~~bpm
+		    		]));
+                },
+                disableMTC : () => {
+		    		return this.formatter(sysexLib.mtc_toggle
+		    		.concat([
+						~~clockid, 0
+		    		]));
+                }, 
+                enableMTC : () => {
+		    		return this.formatter(sysexLib.mtc_toggle
+		    		.concat([
+						~~clockid, 1
+		    		]));
+                },
+
+            }
+	    }
+
+		/* IntelliThru */
+
+		sxResetIThru()      { return this.formatter(sysexLib.ithru_reset) };
+		sxDisableAllIThru() { return this.formatter(sysexLib.ithru_disable_all) };
+		sxSetUSBIdle()      { return this.formatter(sysexLib.ithru_set_usbidle) };
+	    sxIntelliRoute()    {
+        	return {
+        		srcID : (srcID) => {
+        			return {
+	                    tgtType : (tgtType) => {
+			                return {
+			                    tgtIDs : (tgtIDs) => {
+						    		return this.formatter(
+							    		sysexLib.ithru_route
+						    			.concat([
+						    				~~srcID, ~~tgtType
+						    			])
+						    			.concat(tgtIDs)
+					    			);
+			                    }
+			                }
+			            }
+			        }
+	            }
+        	}	        
+	    }
 
 		/* Routes */
 
+		sxResetRoutes() { return this.formatter(sysexLib.route_reset) };
 	    sxRoute() {
 	        return {
 	            srcType : (srcType) => {
@@ -70,68 +186,72 @@
 	        }
 	    }
 
-	    sxIntelliRoute() {
-        	return {
-        		srcID : (srcID) => {
-        			return {
-	                    tgtType : (tgtType) => {
+	    /* Bus Mode */
+
+		sxEnableBus() 	{ return this.formatter(sysexLib.enable_bus) };
+		sxDisableBus() 	{ return this.formatter(sysexLib.disable_bus) };
+	    sxSetBusID(busID) {
+    		return this.formatter(sysexLib.set_busid
+    		.concat([
+				~~busID
+    		]));
+	    }
+
+	    sxPipeline(pipelineID){
+
+	        return {
+
+                copyTo : (pipelineDestID) => {
+		    		return this.formatter(sysexLib.pipeline_copy
+		    		.concat([
+						~~pipelineID, ~~pipelineDestID
+		    		]));
+                }, 
+                clear : () => {
+		    		return this.formatter(sysexLib.pipeline_clear
+		    		.concat([
+						~~pipelineID, 1
+		    		]));
+                }, 
+                attachPort : () => {
+                	return  {
+			            portType : (portType) => {
 			                return {
-			                    tgtIDs : (tgtIDs) => {
-						    		return this.formatter(
-							    		sysexLib.route_set_ithru
-						    			.concat([
-						    				~~srcID, ~~tgtType
-						    			])
-						    			.concat(tgtIDs)
-					    			);
+			                    portID : (portID) => {
+						    		return this.formatter(sysexLib.pipeline_attach
+						    		.concat([
+										~~portType, ~~portID, ~~pipelineID
+						    		]));
 			                    }
-			                }
+			                };
 			            }
-			        }
-	            }
-        	}	        
-	    }
-
-	    /* Pipelines */
-
-	    sxAttachPipeline(pipelineID) {
-	        return {
-	            srcType : (srcType) => {
-	                return {
-	                    srcID : (srcID) => {
-				    		return this.formatter(sysexLib.slot_attach
-				    		.concat([
-								~~srcType, ~~srcID, ~~pipelineID
-				    		]));
-	                    }
-	                };
-	            }
-	        };
-	    }
-
-	    sxDetachPipeline() {
-	        return {
-	            srcType : (srcType) => {
-	                return {
-	                    srcID : (srcID) => {
-				    		return this.formatter(sysexLib.slot_attach
-				    		.concat([
-								~~srcType, ~~srcID, 0
-				    		]));
-	                    }
-	                };
-	            }
-	        };
+					}
+                },
+                clearPort : () => {
+                	return  {
+			            portType : (portType) => {
+			                return {
+			                    portID : (portID) => {
+						    		return this.formatter(sysexLib.pipeline_attach
+						    		.concat([
+										~~portType, ~~portID, 0
+						    		]));
+			                    }
+			                };
+			            }
+					}
+                }
+            }
 	    }
 
 
-	    /* Pipes */
+	    /* Transformations - Pipes */
 
-	    sxAddPipeToPipeline(pipelineID) {
+	    sxAddPipe(pipelineID) {
 	        return {
 	            pipeID : (pipeID) => {
 	                return {
-	                    parameters : (p1,p2,p3,p4) => {
+	                    parms : (p1,p2,p3,p4) => {
 				    		return this.formatter(sysexLib.add_pipe
 			    			.concat([
 			    				~~pipelineID, ~~pipeID
@@ -145,17 +265,17 @@
 	        };
 	    }
 
-	    sxInsertPipeToPipeline(pipelineID) {
+	    sxInsertPipe(pipelineID) {
 	        return {
-	            pipelineSlotID : (pipelineSlotID) => {
+	            slotID : (slotID) => {
 	            	return {
 	            		pipeID : (pipeID) => {
 			                return {
-			                    parameters : (p1,p2,p3,p4) => {
+			                    parms : (p1,p2,p3,p4) => {
 						    		return this.formatter(
 							    		sysexLib.insert_pipe
 						    			.concat([
-						    				~~pipelineID, ~~pipelineSlotID, ~~pipeID
+						    				~~pipelineID, ~~slotID, ~~pipeID
 						    			])
 						    			.concat([
 						    				~~p1, ~~p2, ~~p3, ~~p4 
@@ -169,17 +289,17 @@
 	        }
 	    }
 
-	    sxReplacePipeInPipeline(pipelineID) {
+	    sxReplacePipe(pipelineID) {
 	        return {
-	            pipelineSlotID : (pipelineSlotID) => {
+	            slotID : (slotID) => {
 	            	return {
 	            		pipeID : (pipeID) => {
 			                return {
-			                    parameters : (p1,p2,p3,p4) => {
+			                    parms : (p1,p2,p3,p4) => {
 						    		return this.formatter(
 							    		sysexLib.replace_pipe
 						    			.concat([
-						    				~~pipelineID, ~~pipelineSlotID, ~~pipeID
+						    				~~pipelineID, ~~slotID, ~~pipeID
 						    			])
 						    			.concat([
 						    				~~p1, ~~p2, ~~p3, ~~p4 
@@ -193,14 +313,14 @@
 	        }
 	    }
 
-	    sxClearPipelineSlot(pipelineID) {
+	    sxClearPipe(pipelineID) {
 	        return {
-	            pipelineSlotID : (pipelineSlotID) => {
+	            slotID : (slotID) => {
 
 		    		return this.formatter(
 			    		sysexLib.clear_pipe
 		    			.concat([
-		    				~~pipelineID, ~~pipelineSlotID
+		    				~~pipelineID, ~~slotID
 		    			])
 	    			);
 
@@ -208,14 +328,14 @@
 	    	}	
 	    }
 	    
-	    sxBypassPipelineSlot(pipelineID) {
+	    sxBypassPipe(pipelineID) {
 	        return {
-	            pipelineSlotID : (pipelineSlotID) => {
+	            slotID : (slotID) => {
 
 		    		return this.formatter(
 			    		sysexLib.bypass_pipe
 		    			.concat([
-		    				~~pipelineID, ~~pipelineSlotID, 1
+		    				~~pipelineID, ~~slotID, 1
 		    			])
 	    			);
 
@@ -223,32 +343,21 @@
 	    	}	
 	    }
 
-	    sxReleaseBypassPipelineSlot(pipelineID) {
+	    sxReleaseBypass(pipelineID) {
 	        return {
-	            pipelineSlotID : (pipelineSlotID) => {
-
+	            slotID : (slotID) => {
 		    		return this.formatter(
 			    		sysexLib.bypass_pipe
 		    			.concat([
-		    				~~pipelineID, ~~pipelineSlotID, 0
+		    				~~pipelineID, ~~slotID, 0
 		    			])
 	    			);
 
 	           	}
 	    	}	
-	    }
-
-	    /* Bus */
-
-	    sxSetBusID(busID) {
-    		return this.formatter(sysexLib.set_busid
-    		.concat([
-				~~busID
-    		]));
 	    }
 
 	}
-
 
 	if (typeof module !== 'undefined' && typeof module.exports !== 'undefined'){
        	module.exports.sysexMaker = {

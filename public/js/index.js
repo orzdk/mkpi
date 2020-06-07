@@ -604,7 +604,7 @@ WebMidi.enable(function (err) {
 	/* Sysex Server Commandlets */
 
 	var sendRefresh = function(clearCanvass){
-
+		
 		clearRenderObject();
 		
 		if (clearCanvass == true){
@@ -620,7 +620,6 @@ WebMidi.enable(function (err) {
 		}
 
 	}
-
 
 	var sendReset = function(){
 
@@ -661,11 +660,11 @@ WebMidi.enable(function (err) {
 
 	var attachPipeline = function(){
 
-		var srcType = $("#fromType").val();
-		var srcID = $("#fromID").val();
+		var portType = $("#fromType").val();
+		var portID = $("#fromID").val();
 		var pipelineID = $("#pipelineID").val();
 
-	    var sx = sxMaker.sxAttachPipeline(pipelineID).srcType(srcType).srcID(srcID);
+		var sx = sxMaker.sxPipeline(pipelineID).attachPort().portType(portType).portID(portID);
 
 	    sendSysex(sx, 'attach_pipeline');
 	    sendRefresh();
@@ -674,11 +673,10 @@ WebMidi.enable(function (err) {
 
 	var detachPipeline = function(){
 
-		var srcType = $("#fromType").val();
-		var srcID = $("#fromID").val();
-		var pipelineID = 0;
+		var portType = $("#fromType").val();
+		var portID = $("#fromID").val();
 
-	    var sx = sxMaker.sxDetachPipeline().srcType(srcType).srcID(srcID);
+	    var sx = sxMaker.sxPipeline().clearPort().portType(portType).portID(portID);
 
 	    sendSysex(sx, 'detach_pipeline');
 	    sendRefresh();
@@ -691,7 +689,7 @@ WebMidi.enable(function (err) {
 		var pipeID = $("#pipeID").val();
 		var pp1 = $("#pp1").val();	var pp2 = $("#pp2").val(); var pp3 = $("#pp3").val(); var pp4 = $("#pp4").val();
 		
-		var sx = sxMaker.sxAddPipeToPipeline(pipelineID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
+		var sx = sxMaker.sxAddPipe(pipelineID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
 
 	    sendSysex(sx, 'add_pipe');
 	    sendRefresh();
@@ -701,11 +699,11 @@ WebMidi.enable(function (err) {
 	var insertPipe = function(){
 
 		var pipelineID = $("#pipelineID").val();
-		var pipelineSlotID = $("#pipelineSlotIdx").val();
+		var slotID = $("#pipelineSlotIdx").val();
 		var pipeID = $("#pipeID").val();
      	var pp1 = $("#pp1").val();	var pp2 = $("#pp2").val(); var pp3 = $("#pp3").val(); var pp4 = $("#pp4").val();
 
-	    var sx = sxMaker.sxInsertPipeToPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
+	    var sx = sxMaker.sxInsertPipe(pipelineID).slotID(slotID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
 
 	    sendSysex(sx, 'insert_pipe');
 	    sendRefresh();
@@ -715,11 +713,11 @@ WebMidi.enable(function (err) {
 	var replacePipe = function(){
 
 		var pipelineID = $("#pipelineID").val();
-		var pipelineSlotID = $("#pipelineSlotIdx").val();
+		var slotID = $("#pipelineSlotIdx").val();
 		var pipeID = $("#pipeID").val();
 		var pp1 = $("#pp1").val();	var pp2 = $("#pp2").val(); var pp3 = $("#pp3").val(); var pp4 = $("#pp4").val();
 		
-		var sx = sxMaker.sxReplacePipeInPipeline(pipelineID).pipelineSlotID(pipelineSlotID).pipeID(pipeID).parameters(pp1, pp2, pp3, pp4);
+		var sx = sxMaker.sxReplacePipe(pipelineID).slotID(slotID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
 
 	    sendSysex(sx, 'replace_pipe');
 	    sendRefresh();
@@ -729,9 +727,9 @@ WebMidi.enable(function (err) {
 	var clearPipe = function(){
 
 		var pipelineID = $("#pipelineID").val();
-		var pipelineSlotID = $("#pipelineSlotIdx").val();
+		var slotID = $("#pipelineSlotIdx").val();
 
-	    var sx = sxMaker.sxClearPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+	    var sx = sxMaker.sxClearPipe(pipelineID).slotID(slotID);
 
 	    sendSysex(sx, 'clear_pipe');
 	    sendRefresh();
@@ -741,11 +739,11 @@ WebMidi.enable(function (err) {
 	var clearPipes = function(callback){
 
 		var pipelineID = $("#pipelineID").val();
-		var pipelineSlotID = $("#pipelineSlotIdx").val();
+		var slotID = $("#pipelineSlotIdx").val();
 
 		for (var pipline=1;pipline<9;pipline++){
 			for (var pipslot=0;pipslot<8;pipslot++){
-				var sx = sxMaker.sxClearPipelineSlot(pipline).pipelineSlotID(0);
+				var sx = sxMaker.sxClearPipe(pipline).slotID(0);
 				sendSysex(sx, 'clear_pipe');
 			}
 		}
@@ -756,9 +754,9 @@ WebMidi.enable(function (err) {
 	var bypassPipe = function(){
 
 		var pipelineID = $("#pipelineID").val();
-		var pipelineSlotID = $("#pipelineSlotIdx").val();
+		var slotID = $("#pipelineSlotIdx").val();
 
-	    var sx = sxMaker.sxBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+	    var sx = sxMaker.sxBypassPipe(pipelineID).slotID(slotID);
 
 	    sendSysex(sx, 'bypass_pipe');
 	    sendRefresh();
@@ -768,21 +766,19 @@ WebMidi.enable(function (err) {
 	var releaseBypassPipe = function(){
 
 		var pipelineID = $("#pipelineID").val();
-		var pipelineSlotID = $("#pipelineSlotIdx").val();
+		var slotID = $("#pipelineSlotIdx").val();
 
-	    var sx = sxMaker.sxReleaseBypassPipelineSlot(pipelineID).pipelineSlotID(pipelineSlotID);
+	    var sx = sxMaker.sxReleaseBypass(pipelineID).slotID(slotID);
 
 	    sendSysex(sx, 'release_bypass_pipe');
 	    sendRefresh();
 
 	}
 
-	var setDeviceID = function(){
+	var setBusID = function(){
 
 		var deviceID = $("#deviceID").val();
-	    var sysexSetdeviceID = [~~deviceID];
-
-	    var sx = sxMaker.sxSetBusID(deviceID);
+	    var sx = sxMaker.sxSetBusID([~~deviceID]);
 
 	    sendSysex(sx, 'set_busid');
 	    sendRefresh(true);
@@ -888,7 +884,7 @@ WebMidi.enable(function (err) {
 
 		user = $("#userinfo").val();
 		scene = $("#scenelist").val();
-
+		
 		clearPipes(function(){
 			ajaxPost('api/findscenerecords', { user, scene }, function(records){
 				records.message[0].sysex.forEach((sysex)=>{
@@ -1228,7 +1224,7 @@ WebMidi.enable(function (err) {
 	$("#clearPipe").on("click", clearPipe);
 	$("#bypassPipe").on("click", bypassPipe);
 	$("#releaseBypassPipe").on("click", releaseBypassPipe);
-	$("#setDeviceID").on("click", setDeviceID);
+	$("#setDeviceID").on("click", setBusID);
 	$("#execute").on("click", sendCommand);
 
 	$("#menu_interface").on("click", toggleMenu);
