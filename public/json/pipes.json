@@ -7,7 +7,8 @@
       "parmdef": {
         "enum": {
           "0": "Inclusive",
-          "1": "Status Double Filter"
+          "1": "Exclusive",
+          "2": "Status Double Filter"
         }
       }
     },
@@ -24,6 +25,16 @@
           }
         },
         "1": {
+          "title": "Bit Mask",
+          "description": "",
+          "parmdef": {
+            "range": {
+              "min": "bit",
+              "max": "mask"
+            }
+          }
+        },
+        "2": {
           "title": "Include/Exclude",
           "description": "",
           "parmdef": {
@@ -41,6 +52,9 @@
           
         },
         "1": {
+          
+        },
+        "2": {
           "title": "Status1",
           "description": "",
           "parmdef": {
@@ -56,8 +70,11 @@
       "p1": {
         "0": {
           
-        },
+        },        
         "1": {
+          
+        },
+        "2": {
           "title": "Status2",
           "description": "",
           "parmdef": {
@@ -92,12 +109,6 @@
           "max": "7F"
         }
       }
-    },
-    "p3": {
-      
-    },
-    "p4": {
-      
     }
   },
   "2": {
@@ -411,12 +422,10 @@
       "title": "Filter Bitmask",
       "description": "",
       "parmdef": {
-        "enum": {
-          "1": "Channel Voice",
-          "2": "Common",
-          "4": "Realtime",
-          "8": "Sysex"
-        }
+          "range": {
+            "min": "bit",
+            "max": "mask"
+          }
       }
     },
     "p3": {

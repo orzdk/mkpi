@@ -188,6 +188,16 @@ WebMidi.enable(function (err) {
 
 	}
 
+	var bitmaskValue = function(){
+
+		var a = $("#cbm_channel_voice").is(":checked") ? 1 : 0;
+		var b = $("#cbm_common").is(":checked") ? 2: 0;
+		var c = $("#cbm_realtime").is(":checked") ? 4 : 0;
+		var d = $("#cbm_sysex").is(":checked") ? 8 : 0;
+
+		return (a+b+c+d);
+	}
+
 	var refreshParameterUI1234 = function(parameterID){
 		
 		var placeholder = "";
@@ -198,6 +208,7 @@ WebMidi.enable(function (err) {
 		var pselect = "#pp" + parameterID; 
 		var ptext = "#pp" + parameterID + "t";
 		var plabel = "#p" + parameterID + "l";
+		var pcb = "#pp" + parameterID + "cb";
 
 		var obj;
 
@@ -236,7 +247,7 @@ WebMidi.enable(function (err) {
 			if (selectedPipeDefinition[pfield])
 			if (Object.keys(selectedPipeDefinition[pfield]).length > 0){
 
-				var p1val, p3val;
+				var p1val, p2val, p3val, p4val;
 
 				if (selectedPipeDefinition.p1){
 					if (selectedPipeDefinition.p1.parmdef){
@@ -244,9 +255,21 @@ WebMidi.enable(function (err) {
 					}
 				}
 
+				if (selectedPipeDefinition.p2){
+					if (selectedPipeDefinition.p2.parmdef){
+						p2val = selectedPipeDefinition.p2.parmdef.enum ? $("#pp2").val() : selectedPipeDefinition.p2.parmdef.range ? $("#pp2t").val() : "";	
+					}
+				}
+
 				if (selectedPipeDefinition.p3){
 					if (selectedPipeDefinition.p3.parmdef){
 						p3val = selectedPipeDefinition.p3.parmdef.enum ? $("#pp3").val() : selectedPipeDefinition.p3.parmdef.range ? $("#pp3t").val() : "";	
+					}
+				}
+				
+				if (selectedPipeDefinition.p4){
+					if (selectedPipeDefinition.p4.parmdef){
+						p4val = selectedPipeDefinition.p4.parmdef.enum ? $("#pp4").val() : selectedPipeDefinition.p4.parmdef.range ? $("#pp4t").val() : "";	
 					}
 				}
 
@@ -282,15 +305,28 @@ WebMidi.enable(function (err) {
 						if (obj.parmdef.range){
 							enumKey = obj.parmdef.range.min + "-" + obj.parmdef.range.max;
 
-							if (parameterID == 3 || parameterID == 4){
-								if (enumKey.indexOf("0x") > -1){
-									enumKey += "-" + parameterID;
-								}
-							}
+							if (enumKey == "bit-mask"){
 
-							Object.keys(ENUMS[enumKey]).forEach(function(key,val) {
-							  $("#pp" + parameterID).append($("<option />").val(key).text(ENUMS[enumKey][key]));
-							});
+								$(pselect).empty();
+								$(pselect).addClass("d-none"); 
+								$(ptext).addClass("d-none");	
+								$(pcb).removeClass("d-none");	
+
+							} else {
+
+								$(pcb).addClass("d-none");	
+
+								if (parameterID == 3 || parameterID == 4){
+									if (enumKey.indexOf("0x") > -1){
+										enumKey += "-" + parameterID;
+									}
+								}
+
+								Object.keys(ENUMS[enumKey]).forEach(function(key,val) {
+								  $("#pp" + parameterID).append($("<option />").val(key).text(ENUMS[enumKey][key]));
+								});
+
+							}
 
 						}
 						
@@ -685,9 +721,24 @@ WebMidi.enable(function (err) {
 
 	var addPipe = function(){
 
+		var pp1, pp2, pp3, pp4;
+		
 		var pipelineID = $("#pipelineID").val();
 		var pipeID = $("#pipeID").val();
-		var pp1 = $("#pp1").val();	var pp2 = $("#pp2").val(); var pp3 = $("#pp3").val(); var pp4 = $("#pp4").val();
+
+		pp1 = $("#pp1").val();	
+
+		var checkhidden = $("#pp2cb").hasClass("d-none");
+
+		if (checkhidden==false) {
+			pp2 = bitmaskValue();
+		}
+		else { 
+			pp2 = $("#pp2").val(); 
+		}
+
+		pp3 = $("#pp3").val(); 
+		pp4 = $("#pp4").val();
 		
 		var sx = sxMaker.sxAddPipe(pipelineID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
 
@@ -698,10 +749,25 @@ WebMidi.enable(function (err) {
 
 	var insertPipe = function(){
 
+		var pp1, pp2, pp3, pp4;
+
 		var pipelineID = $("#pipelineID").val();
 		var slotID = $("#pipelineSlotIdx").val();
 		var pipeID = $("#pipeID").val();
-     	var pp1 = $("#pp1").val();	var pp2 = $("#pp2").val(); var pp3 = $("#pp3").val(); var pp4 = $("#pp4").val();
+
+     	pp1 = $("#pp1").val();	
+
+     	var checkhidden = $("#pp2cb").hasClass("d-none");
+
+		if (checkhidden==false) {
+			pp2 = bitmaskValue();
+		}
+		else { 
+			pp2 = $("#pp2").val(); 
+		}
+
+     	pp3 = $("#pp3").val(); 
+     	pp4 = $("#pp4").val();
 
 	    var sx = sxMaker.sxInsertPipe(pipelineID).slotID(slotID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
 
@@ -712,10 +778,25 @@ WebMidi.enable(function (err) {
 	
 	var replacePipe = function(){
 
+		var pp1, pp2, pp3, pp4;
+
 		var pipelineID = $("#pipelineID").val();
 		var slotID = $("#pipelineSlotIdx").val();
 		var pipeID = $("#pipeID").val();
-		var pp1 = $("#pp1").val();	var pp2 = $("#pp2").val(); var pp3 = $("#pp3").val(); var pp4 = $("#pp4").val();
+
+		pp1 = $("#pp1").val();	
+
+		var checkhidden = $("#pp2cb").hasClass("d-none");
+
+		if (checkhidden==false) {
+			pp2 = bitmaskValue();
+		}
+		else { 
+			pp2 = $("#pp2").val(); 
+		}
+
+		pp3 = $("#pp3").val(); 
+		pp4 = $("#pp4").val();
 		
 		var sx = sxMaker.sxReplacePipe(pipelineID).slotID(slotID).pipeID(pipeID).parms(pp1, pp2, pp3, pp4);
 

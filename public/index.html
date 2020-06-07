@@ -247,7 +247,7 @@
                                 <br>
                                 <span style="margin-top: 0px;margin-left: 4px"><label class="pipe-desc" id="pipedescription"></label></span>
                              </td>
-                          </tr>
+                          </tr>                         
                           <tr class="_menu_pipes_ d-none">
                              <td class="tdf">
                                 <label class="parm-label" id="p1l"></label>
@@ -264,6 +264,14 @@
                              <td>
                                 <select class="parm-select" id="pp2"></select>
                                 <input id="pp2t" type="text" class="parm-text d-none">
+                                <span id="pp2cb" class="d-none">
+                                  <table>
+                                    <tr><td><input type="checkbox" id="cbm_channel_voice"></td><td><label class="parm-label">Channel Voice</label></td></tr>
+                                    <tr><td><input type="checkbox" id="cbm_common"></td><td><label class="parm-label">Common</label></td></tr>
+                                    <tr><td><input type="checkbox" id="cbm_realtime"></td><td><label class="parm-label">RealTime</label></td></tr>
+                                    <tr><td><input type="checkbox" id="cbm_sysex"></td><td><label class="parm-label">Sysex</label></td></tr>
+                                  </table>
+                                </span>
                              </td>
                           </tr>
                           <tr class="_menu_pipes_ d-none">
@@ -361,7 +369,7 @@
                           <tr class="_menu_options_">
                              <td><label class="parm-label"></label></td>
                              <td>
-                                <div><input type="button" class="parm-but parm-but-blue" id="execute" value="Run"></div>
+                                <div><input type="button" class="parm-but parm-but-blue" id="execute" value="Execute"></div>
                              </td>
                           </tr>
                           <tr class="_menu_options_">
