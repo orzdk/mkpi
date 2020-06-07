@@ -51,9 +51,6 @@ A number of sliders has been provided for configuring the UI. First 4 controls t
 
 Next pair controls if you want to see the chart horizontally or vertically aligned, and the pathfinding rank algorithm used in the chart. If you have few routes and no pipes configured, you will see very few differences. If you have huge complex setup, you may need to adjust these for optimal experience. 
 
-The lonely slider (awww) controls if unused in/outputs are visible. Last pair controls if parameter 1 (command) of a pipe in a pipeline is displayed, and finally a global zoom. 
-
-
 # API:
 
 ## Global Functions
