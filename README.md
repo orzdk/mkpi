@@ -2,12 +2,12 @@
  
 ![Screenshot](https://github.com/orzdk/mkpi/blob/master/doc/screenshot.png)
 
-THIS IS A BETA. BACKUP ANY IMPORTANT ROUTING TABLES.
+THIS IS A BETA. BACKUP ANY IMPORTANT ROUTING TABLES !
 
-Now with raspi gpio API !
+# Now with raspi gpio API !
 
 ## Intro
-MKPI is a frontend for USBMidiKliK - https://github.com/TheKikGen/USBMidiKliK4x4
+MKPI is a frontend for USBMidiKliK4x4 - https://github.com/TheKikGen/USBMidiKliK4x4
 To familiarize yourself with the priciples of routing and transformation applied in the UI, please refer to the USBMidiKliK4x4 sysex documentation first. 
 
 ## Users, logins
@@ -170,5 +170,4 @@ sxMaker.sxClearPipe(pipelineID).slotID(slotID);
 sxMaker.sxBypassPipe(pipelineID).slotID(slotID);  
 sxMaker.sxReleaseBypassPipe(pipelineID).slotID(slotID);  
 
-
-USBMidikliK, USB MIDI Router, MIDI Router, MIDI Transformer, MIDI Interface, MIDI Modifier, MIDI Message Modifier, MIDI Merge, MIDI Change
+USBMidikliK, USBMidikliK4x4, UI for USBMidiKliL, API for USBMidiKlik, Webserver for USB MidiKlik, Midi Router Webinterface, DIY MIDI, STM32, Bluepill, Blue Pill, Blue Pill Board, USB MIDI Router, MIDI Router, MIDI Transformer, MIDI Interface, MIDI Modifier, MIDI Message Modifier, MIDI Merge, MIDI Changer, Raspberry PI, Raspberry PI GPIO, Visual MIDI Routing, Visual Midi Transformer
