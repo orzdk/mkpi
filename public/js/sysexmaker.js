@@ -63,7 +63,7 @@
 		sxAckToggle() 		{ return this.formatter(sysexLib.ack_toggle) };
 		sxFactorySettings() { return this.formatter(sysexLib.factory_settings) };	
 		sxSaveFlash() 		{ return this.formatter(sysexLib.save_flash) };
-		sxBootSerial() 		{ return this.formatter(sysexLib.config_request) };
+		sxBootSerial() 		{ return this.formatter(sysexLib.boot_serial) };
 		sxFullDump() 		{ return this.formatter(sysexLib.config_request) };
 		sxResetAll() 		{ return this.formatter(sysexLib.reset_all) };
 
