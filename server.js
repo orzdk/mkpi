@@ -399,6 +399,15 @@ apiRoutes.get('/releasebypasspipe/:pipelineID/:pipelineSlotID', function(req, re
     finish(res);
 });
 
+/* Sysinfo */
+
+apiRoutes.post('/sysinfo', function(req, res){
+    var message = "on " + s_port_name; 
+    if (!s_port) message = "[error 1: no serial]";
+    
+    res.json({ status: 'SUCCESS', message });
+    
+});
 
 /* Scenes */
 
