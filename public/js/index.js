@@ -565,7 +565,7 @@ WebMidi.enable(function (err) {
 	/* Sysex */
 
 	var sendSysex = function(sysex, cmdid, logClear){
-	
+		
 		render = false;
 		sysexRecords = [];
 
@@ -965,6 +965,14 @@ WebMidi.enable(function (err) {
 
 	}
 
+	var createDoubleMidi = function(sysex){
+		console.log(sysex);
+		var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
+		webmidi.pop();
+		var full = JSON.parse(JSON.stringify(sysex));
+		return { webmidi, full };
+	}
+
 	var loadScene = function(e){
 
 		user = $("#userinfo").val();
@@ -974,10 +982,7 @@ WebMidi.enable(function (err) {
 
 			ajaxPost('api/findscenerecords', { user, scene }, function(records){
 				records.message[0].sysex.forEach((sysex)=>{
-					var webmidi = JSON.parse(JSON.stringify(sysex)).slice(2);
-					webmidi.pop();
-					var full = JSON.parse(JSON.stringify(sysex));
-					sendSysex({ webmidi, full });
+					sendSysex(createDoubleMidi(sysex));
 				});
 				sendRefresh(true);
 			});
@@ -1061,6 +1066,18 @@ WebMidi.enable(function (err) {
 	}
 
 	/* UI Handling */
+
+	var executeCustomSysex = function(){
+		var a = $("#customSysex").val();
+		var sysex = a.split(" ").map(d => ConvertBase.hex2dec(d));
+		sendSysex(createDoubleMidi(sysex));
+		sendRefresh();
+	}
+
+	var clearCustomSysex = function(){
+		$("#customSysex").val("");
+	}
+
 	var toggleMenu = function(item){
 
 		if ( $("._" + item.target.id + "_").hasClass('d-none') ){
@@ -1320,6 +1337,9 @@ WebMidi.enable(function (err) {
 	$("#menu_scenes").on("click", toggleMenu);
 	$("#menu_options").on("click", toggleMenu);
 	$("#menu_ui").on("click", toggleMenu);
+
+	$("#executeCustomSysex").on("click", executeCustomSysex);
+	$("#clearCustomSysex").on("click", clearCustomSysex);
 
 	$("#uioption").on("change", uioptionChanged);
 	$("#midiInputSelect").on("change", inputChanged);
