@@ -105,3 +105,4 @@ dist
 doc/routing.txt
 public/json/enums.old.json
 scrap.txt
+config-mk.js
